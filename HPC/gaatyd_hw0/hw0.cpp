@@ -38,5 +38,7 @@ int main (int argc, char** argv){
 	}
 	
 	std::cout << "\n\nTotal rows read: " << fileParser.getTotalRows() << "\n\n";
+	
+	fileParser.doCleanUp();
     return 0;
 }

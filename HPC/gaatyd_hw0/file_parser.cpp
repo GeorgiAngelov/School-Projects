@@ -20,23 +20,37 @@ VectorsMap Parser::parseFile(){
 	//open file
 	fPtr = fopen(fileName, "r");
 	total_rows = 0;
-	char *line = (char*)malloc(sizeof(char)*LINE_MAX);
+	line = (char*)malloc(sizeof(char)*LINE_MAX);
+	//create start and end chrono time points
 	std::chrono::time_point<std::chrono::system_clock> start, end;
+	//record the start tiem.
     start = std::chrono::system_clock::now();
 	
+	//parse the file line by line
 	while(fgets(line, LINE_MAX, fPtr)){
+		//make sure that we do not read an empty line
 		if(line[0] != '\0') {
-			//std::cout << line << "\n";
+			//send the line to be further parsed
 			parseLine(line);
+			//increment total rows count
 			total_rows++;	
 		}
 	}
+	//calculate end time.
 	end = std::chrono::system_clock::now();
-	
+	//calculate duration
 	std::chrono::duration<double> elapsed_seconds = end-start;
+	//print info on total timel
 	std::cout << "\nTotal time to parse file and find Min and Max: " << elapsed_seconds.count() << " seconds\n";
-	
 	return vector_points;
+}
+
+void Parser::doCleanUp(){
+	fclose(fPtr);
+	free(line);
+	free(vectorMax);
+	free(vectorMin);
+	vector_points.clear();
 }
 
 /**
