@@ -2,7 +2,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <vector>
-#include <chrono>
 #include "file_parser.h"
 
 Parser::Parser(char* fname){
@@ -41,7 +40,7 @@ VectorsMap Parser::parseFile(){
 	//calculate duration
 	std::chrono::duration<double> elapsed_seconds = end-start;
 	//print info on total timel
-	std::cout << "\nTotal time to parse file and find Min and Max: " << elapsed_seconds.count() << " seconds\n";
+	std::cout << "\nTotal time to parse file : " << elapsed_seconds.count() << " seconds\n";
 	return vector_points;
 }
 
@@ -88,7 +87,6 @@ void Parser::parseLine(char* line){
 		float f_point = strtof(point, NULL);
 		//push the float to the vector
 		vectors.push_back(f_point);
-		isMaxMinVector(f_point, i);
 		i++;
 	}
 	//insert in the vectormap.
@@ -102,19 +100,7 @@ void Parser::isMaxXY(float x, float y){
 	if(y < yMin) yMin = y;
 }
 
-void Parser::isMaxMinVector(float value, int index){
-	
-	//if the index of the vector is not yet used
-	/*if (index >= vectorMax.size()){
-		vectorMax.resize( index + 1 ); 
-		vectorMax[index] = value; 
-	}
-	
-	if(index >= vectorMin.size()){
-		vectorMin.resize( index + 1 ); 
-		vectorMin[index] = value;
-	}*/
-	
+void Parser::isMaxMinVector(float value, int index){	
 	//if we are at the first row, initialize the vectors
 	if(total_rows == 0){
 		vectorMax[index] = -11111111.11;

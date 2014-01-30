@@ -6,6 +6,7 @@
 #include <map>
 #include <iomanip>
 #include <vector>
+#include <chrono>
 #define LINE_MAX 5000
 #define VECTOR_COUNT 360
 
@@ -31,6 +32,8 @@ class Parser{
 		int row_values;
 		int total_rows;
 		void doCleanUp();
+		void isMaxXY(float x, float y);
+		void isMaxMinVector(float value, int index);
 	private:
 		//collection of all x y points and their vectors 
 		VectorsMap vector_points;
@@ -45,8 +48,7 @@ class Parser{
 		float* vectorMin; //array of floats for min vector
 
 		void parseLine(char* line);
-		void isMaxXY(float x, float y);
-		void isMaxMinVector(float value, int index);
+
 };
 
 #endif

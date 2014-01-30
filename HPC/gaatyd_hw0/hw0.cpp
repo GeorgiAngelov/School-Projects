@@ -3,7 +3,10 @@
 
 int main (int argc, char** argv){
 	VectorsMap points;
+	VectorsMap::iterator iter;
 	int i;
+	//create start and end chrono time points
+	std::chrono::time_point<std::chrono::system_clock> start, end;
 	
 	if(argc == 1){
 		std::cout << "No file was provided.\nPlease execute with ./hw0 <input_filename>\n";
@@ -14,6 +17,29 @@ int main (int argc, char** argv){
 	Parser fileParser(argv[1]);
 	//parse the file 
 	points = fileParser.parseFile();
+	
+	//record the start tiem.
+    start = std::chrono::system_clock::now();
+	
+	//iterate over all vectors
+	for (iter = points.begin(); iter != points.end(); iter++) {
+		XYPair key = iter->first;
+		fileParser.isMaxXY(key.first, key.second);
+		int i=0;
+		//loop through each vector'
+		for(std::vector<float>::iterator it = iter->second.begin(); it != iter->second.end(); ++it) {
+			fileParser.isMaxMinVector(*it, i);
+			i++;
+		}
+	}
+	
+	//calculate end time.
+	end = std::chrono::system_clock::now();
+	//calculate duration
+	std::chrono::duration<double> elapsed_seconds = end-start;
+	//print info on total timel
+	std::cout << "\nTotal time to find Min and Max : " << elapsed_seconds.count() << " seconds\n";
+	
 	float* vectors;
 	XYPair xy_pair_min = fileParser.getMinXY();
 	XYPair xy_pair_max = fileParser.getMaxXY();
