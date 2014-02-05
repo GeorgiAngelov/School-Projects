@@ -1,3 +1,10 @@
+/**
+*	Name: Georgi Angelov
+*	ID: 14120841
+*	HW#: Homework 0
+*	Date: 1/30/2014
+*/
+
 #ifndef _FILE_PARSER_H
 #define _FILE_PARSER_H
 
@@ -16,6 +23,7 @@
 
 //create specific types to make my life easier later on 
 typedef std::pair<float, float> XYPair;
+
 typedef std::pair<XYPair, std::vector<float> > VectorsPair;
 typedef std::map<XYPair, std::vector<float> > VectorsMap;
 

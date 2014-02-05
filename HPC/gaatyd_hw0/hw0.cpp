@@ -1,3 +1,10 @@
+/**
+*	Name: Georgi Angelov
+*	ID: 14120841
+*	HW#: Homework 0
+*	Date: 1/30/2014
+*/
+
 #include <iostream>
 #include "file_parser.h"
 
