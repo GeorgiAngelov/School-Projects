@@ -23,12 +23,14 @@ scottgs::FloatMatrix scottgs::MatrixMultiply::operator()(const scottgs::FloatMat
 		throw std::logic_error("matrix incompatible lhs.size2() != rhs.size1()");
 
 	scottgs::FloatMatrix result(lhs.size1(),rhs.size2());
-	
+	unsigned int i;
+	unsigned int j;
+	unsigned int k;
 	// YOUR ALGORIHM WITH COMMENTS GOES HERE:
-	for (unsigned i = 0; i < lhs.size1 (); ++ i) 
-        for (unsigned j = 0; j < lhs.size2 (); ++ j) 
-            std::cout << lhs (i, j) << "\n";
-			
+	for (i = 0; i < lhs.size1(); ++i)
+        for (j = 0; j < rhs.size2(); ++j)
+			for (k = 0; k < lhs.size2(); ++k) 		
+				result(i,j) += lhs(i,k) * rhs(k,j);
 	
 	
 	return result;
