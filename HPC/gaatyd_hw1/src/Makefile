@@ -9,10 +9,10 @@ hw1: hw1.o MatrixMultiply.o
 	g++ -o hw1 hw1.o MatrixMultiply.o
 
 hw1.o:	hw1.cpp 
-	g++ ${OTHER_FLAGS} -Wall -c hw1.cpp
+	g++ ${OTHER_FLAGS} -O3 -Wall -c hw1.cpp
 
 MatrixMultiply.o : MatrixMultiply.hpp MatrixMultiply.cpp
-	g++ ${OTHER_FLAGS} -Wall -c MatrixMultiply.cpp
+	g++ ${OTHER_FLAGS} -O3 -Wall -c MatrixMultiply.cpp
 
 clean:
 	rm -f *.o hw1

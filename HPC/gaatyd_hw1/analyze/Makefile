@@ -1,5 +1,11 @@
 # set this to what I want
-OTHER_FLAGS=-std=c++0x
+#OTHER_FLAGS=-std=c++0x -funroll-loops -BOOST_NDEBUG -BOOST_UBLAS_NDEBUG
+#OTHER_FLAGS=-std=c++0x -funroll-loops -march=native -mfpmath=sse
+#OTHER_FLAGS=-std=c++0x -O3 -floop-block
+OTHER_FLAGS=-std=c++0x -O3
+# -v paralellizes the code.
+# use intrinsics SIMD
+
 
 # Standard all target
 all: hw1_analyze
