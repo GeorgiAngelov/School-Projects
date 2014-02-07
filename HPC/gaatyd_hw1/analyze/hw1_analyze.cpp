@@ -21,7 +21,7 @@ int main(int argc, char * argv[])
 	srand(123456);	// use a constant number to seed the pseudo random number generator
 			// this way your results at least have the same input on a given system
 	
-	const unsigned int ITR=10;
+	const unsigned int ITR=100;
 	
 #if 1
 	// ---------------------------------------------

@@ -26,29 +26,47 @@ scottgs::FloatMatrix scottgs::MatrixMultiply::operator()(const scottgs::FloatMat
 	scottgs::FloatMatrix result(lhs.size1(),rhs.size2());
 	
 	//create the unsigned ints used for the three for loops
-	unsigned int m1_c_i; //matrix 1 column index
-	unsigned int m1_r_i; //matrix 1 row index
-	unsigned int m2_c_i; //matrix 2 column index
+	unsigned int i; //matrix 1 column index
+	unsigned int j; //matrix 1 row index
+	unsigned int k; //matrix 2 column index
 	
 	//get the sizes I need and put them into a constant
-	const unsigned int m1_num_row = lhs.size1(); //# of row of result matrix
-	const unsigned int m1_num_col = lhs.size2();
-	const unsigned int m2_num_col = rhs.size2(); //# of column of result matrix
+	const unsigned int m1_num_row = lhs.size1(); //# of row of matrix 1
+	const unsigned int m1_num_col = lhs.size2(); //# of col of matrix 1
+	const unsigned int m2_num_row = rhs.size1(); //# of row of matrix 2
+	const unsigned int m2_num_col = rhs.size2(); //# of column of matrix 2
 	
 	//get a reference of the matrix's first element ( this will be a pointer to the first element )
 	const float *m1 = &lhs(0,0);
 	const float *m2 = &rhs(0,0);
 	
+	//malloc memory for the soon to be transposed matrix ( matrix #2)
+	float *transposed = (float*)malloc(sizeof(float)*m2_num_col*m2_num_row);
+	
+/*	std::cout << "\n";
+	//loop through each row of matrix 1
+	for (i = 0; i < m2_num_row; ++i){
+		//loop through each column of matrix 2
+        for (j = 0; j < m2_num_col; ++j){
+			std::cout << *(m
+		}
+	}*/
+	
+	//transpose the second matrix
+	for (j = 0; j < m2_num_col; ++j)
+		for (i = 0; i < m2_num_row; ++i)
+			*(transposed + j*m2_num_row + i) = *(m1 + i*m2_num_col + j);
+	
 	//get a copy of the first element.
 	float *r = &result(0,0);
 	
 	//loop through each row of matrix 1
-	for (m1_c_i = 0; m1_c_i < m1_num_row; ++m1_c_i)
+	for (i = 0; i < m1_num_row; ++i)
 		//loop through each column of matrix 2
-        for (m1_r_i = 0; m1_r_i < m2_num_col; ++m1_r_i)
+        for (j = 0; j < m2_num_col; ++j)
 			//loop through each column of matrix 1
-			for (m2_c_i = 0; m2_c_i < m1_num_col; ++m2_c_i)
-				*(r + m1_c_i*m2_num_col + m1_r_i) += *(m1 + m1_c_i*m1_num_col + m2_c_i) * *(m2 + m2_c_i*m2_num_col + m1_r_i);
+			for (k = 0; k < m1_num_col; ++k)
+				*(r + i*m2_num_col + j) += *(m1 + i*m1_num_col + k) * *(m2 + k*m2_num_col + j);
 				
 	return result;
 }
