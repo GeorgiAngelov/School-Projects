@@ -38,7 +38,6 @@ scottgs::FloatMatrix scottgs::MatrixMultiply::operator()(const scottgs::FloatMat
 	
 	//get a reference of the matrix's first element ( this will be a pointer to the first element )
 	const float *m1 = &lhs(0,0);
-	const float *m2 = &rhs(0,0);
 	
 	//malloc memory for the soon to be transposed matrix ( matrix #2)
 	float *transposed = (float*)malloc(sizeof(float)*m2_num_col*m2_num_row);
@@ -58,7 +57,8 @@ scottgs::FloatMatrix scottgs::MatrixMultiply::operator()(const scottgs::FloatMat
 			//loop through each column of matrix 1
 			for (k = 0; k < m1_num_col; ++k)
 				*(r + i*m2_num_col + j) += *(m1 + i*m1_num_col + k) * *(transposed + j*m1_num_col + k);
-				
+	free(transposed);
+	
 	return result;
 }
 

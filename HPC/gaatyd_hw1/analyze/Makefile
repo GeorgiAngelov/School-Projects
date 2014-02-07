@@ -2,7 +2,7 @@
 #OTHER_FLAGS=-std=c++0x -funroll-loops -BOOST_NDEBUG -BOOST_UBLAS_NDEBUG
 #OTHER_FLAGS=-std=c++0x -funroll-loops -march=native -mfpmath=sse
 #OTHER_FLAGS=-std=c++0x -O3 -floop-block
-OTHER_FLAGS=-std=c++0x -O3 -BOOST_NDEBUG -BOOST_UBLAS_NDEBUG
+OTHER_FLAGS=-std=c++0x -O3
 # -v paralellizes the code.
 # use intrinsics SIMD
 

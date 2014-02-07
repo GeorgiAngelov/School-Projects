@@ -1,7 +1,7 @@
 # set this to what I want
 OTHER_FLAGS=$(ENV_HPC_OPTS)
 
-MY_FLAGS=-O3 -BOOST_NDEBUG -BOOST_UBLAS_NDEBUG -march=native -mfpmath=sse
+MY_FLAGS= -O3 -BOOST_NDEBUG -BOOST_UBLAS_NDEBUG
 
 # Standard all target
 all: hw1
