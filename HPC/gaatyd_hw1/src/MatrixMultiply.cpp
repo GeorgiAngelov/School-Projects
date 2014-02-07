@@ -43,27 +43,11 @@ scottgs::FloatMatrix scottgs::MatrixMultiply::operator()(const scottgs::FloatMat
 	//malloc memory for the soon to be transposed matrix ( matrix #2)
 	float *transposed = (float*)malloc(sizeof(float)*m2_num_col*m2_num_row);
 	
-	std::cout << "\nBefore\n";
-	//loop through each row of matrix 1
-	for (i = 0; i < m2_num_row; ++i){
-		//loop through each column of matrix 2
-        for (j = 0; j < m2_num_col; ++j){
-			std::cout << *(m2 + i*m2_num_col + j) << " ";
-		}
-		std::cout << "\n";
-	}
-	
-	std::cout << "After\n";
-	
 	//transpose the second matrix
-	for (j = 0; j < m2_num_col; ++j){
-		for (i = 0; i < m2_num_row; ++i){
+	for (j = 0; j < m2_num_col; ++j)
+		for (i = 0; i < m2_num_row; ++i)
 			*(transposed + j*m2_num_row + i) = *(m1 + i*m2_num_col + j);
-			std::cout << *(transposed + j*m2_num_row + i) << " ";
-		}
-		std::cout << "\n";
-	}
-	
+
 	//get a copy of the first element.
 	float *r = &result(0,0);
 	
@@ -73,7 +57,7 @@ scottgs::FloatMatrix scottgs::MatrixMultiply::operator()(const scottgs::FloatMat
         for (j = 0; j < m2_num_col; ++j)
 			//loop through each column of matrix 1
 			for (k = 0; k < m1_num_col; ++k)
-				*(r + i*m2_num_col + j) += *(m1 + i*m1_num_col + k) * *(m2 + k*m2_num_col + j);
+				*(r + i*m2_num_col + j) += *(m1 + i*m1_num_col + k) * *(transposed + j*m1_num_col + k);
 				
 	return result;
 }
