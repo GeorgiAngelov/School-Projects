@@ -22,60 +22,61 @@ scottgs::FloatMatrix scottgs::MatrixMultiply::operator()(const scottgs::FloatMat
 	if (lhs.size2() != rhs.size1())
 		throw std::logic_error("matrix incompatible lhs.size2() != rhs.size1()");
 
+	//create the matrix
 	scottgs::FloatMatrix result(lhs.size1(),rhs.size2());
-	unsigned int i,j,k,ii,jj,kk;
-	const unsigned int row = lhs.size1();
-	const unsigned int col = lhs.size2();
-	const unsigned int row2 = rhs.size1();
-	const unsigned int col2 = rhs.size2();
 	
-	const unsigned int my_size = row2*col2;
-	const unsigned int matrix1_size = row*col;
-	const int block_size = 30;
+	//create the unsigned ints used for the three for loops
+	unsigned int i,j,k,ii,jj,kk; //matrices indexes
 	
+	//get the sizes I need and put them into a constant
+	const unsigned int m1_num_row = lhs.size1(); //# of row of matrix 1
+	const unsigned int m1_num_col = lhs.size2(); //# of col of matrix 1
+	const unsigned int m2_num_row = rhs.size1(); //# of row of matrix 2
+	const unsigned int m2_num_col = rhs.size2(); //# of column of matrix 2
+	
+	//block size calculation
+	//2 * (blockSize)^2 * 4 = 32768 (L1 cache)
+	//SQRT(32768/8) = blockSize = 64
+	
+	const int block_size = 64;
+	
+	//get a reference of the matrix's first element ( this will be a pointer to the first element )
+	const float *m1 = &lhs(0,0);
+	
+	//malloc memory for the soon to be transposed matrix ( matrix #2)
+	//float *transposed = (float*)malloc(sizeof(float)*m2_num_col*m2_num_row);
 	std::vector<float> transposed;
-	std::vector<float> matrix1_vector;
-	std::vector<float> result_vector;
+	transposed.resize(m2_num_col*m2_num_row);
 	
-	transposed.resize(my_size);
-	matrix1_vector.resize(matrix1_size);
-	result_vector.resize(row*col2);
+	//get a copy of the first element.
+	float *r = &result(0,0);
 	
-	//transpose matrix 2 and copy the vlaues into a vector
-	for (i = 0; i < col2; ++i)
-		for (j = 0; j < row2; ++j)
-			transposed[i*row2 + j] = rhs(j,i);
+	//transpose the second matrix
+	for (j = 0; j < m2_num_col; ++j)
+		for (i = 0; i < m2_num_row; ++i)
+			transposed[j*m2_num_row + i] = m1[i*m2_num_col + j];
 	
-	//copy the values of matrix 1 into a vector
-	for (i = 0; i < row; ++i)
-		for (j = 0; j < col; ++j)
-			matrix1_vector[i*col + j] = lhs(i,j);
-	
-	//calculate the matrix multiplication
-	/*for (i = 0; i < row; ++i)
-		for (j = 0; j < col2; ++j)
-			for (k = 0; k < col; ++k)
-				result_vector[i*col2 + j] += matrix1_vector[i*col+k] * transposed[j*col+k];*/
-				
-	for (ii = 0; ii < row; ii+=block_size){
-		for (jj = 0; jj < col2; jj+=block_size){
-			for (kk = 0; kk < col; kk+=block_size){
-				for (i = ii; i < std::min(row, ii+block_size); ++i){
-					for (j = jj; j < std::min(col2, jj+block_size); ++j){
-						for (k = kk; k < std::min(col, kk+block_size); ++k){
-							result_vector[i*col2 + j] += matrix1_vector[i*col+k] * transposed[j*col+k];
-						}
-					}
-				} 
-			}
-		}
+	if(m1_num_row > 100 || m1_num_col > 100 || m2_num_row > 100 || m2_num_col > 100){
+		for (i = 0; i < m1_num_row; ++i)
+			//loop through each column of matrix 2
+			for (j = 0; j < m2_num_col; ++j)
+				//loop through each column of matrix 1
+				for (k = 0; k < m1_num_col; ++k)
+					r[i*m2_num_col + j] = r[i*m2_num_col + j] + m1[i*m1_num_col + k] * transposed[j*m1_num_col + k];
+	}else{
+		//loop through each row of matrix 1
+		for (ii = 0; ii < m1_num_row; ii+=block_size)
+			//loop through each column of matrix 2
+			for (jj = 0; jj < m2_num_col; jj+=block_size)
+				//loop through each column of matrix 1
+				for (kk = 0; kk < m1_num_col; kk+=block_size)
+					for (i = ii; i < std::min(m1_num_row, ii+block_size); ++i)
+						//loop through each column of matrix 2
+						for (j = jj; j < std::min(m2_num_col, jj+block_size); ++j)
+							//loop through each column of matrix 1
+							for (k = kk; k < std::min(m1_num_col, kk+block_size); ++k)
+								r[i*m2_num_col + j] = r[i*m2_num_col + j] + m1[i*m1_num_col + k] *transposed[j*m1_num_col + k];
 	}
-
-	//add the values of the result vector back into the result matrix
-	//that the function is expecting
-	for (i = 0; i < row; ++i)
-		for (j = 0; j < col2; ++j)
-			result(i,j) = result_vector[i*col2 + j];
 	
 	return result;
 }
