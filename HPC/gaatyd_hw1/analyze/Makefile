@@ -1,18 +1,12 @@
 # set this to what I want
-#OTHER_FLAGS=-std=c++0x -funroll-loops -BOOST_NDEBUG -BOOST_UBLAS_NDEBUG
-#OTHER_FLAGS=-std=c++0x -funroll-loops -march=native -mfpmath=sse
-#OTHER_FLAGS=-std=c++0x -O3 -floop-block
-OTHER_FLAGS=-std=c++0x -O3
-# -v paralellizes the code.
-# use intrinsics SIMD
-
+OTHER_FLAGS=-std=c++0x -O4 -funroll-loops -ffast-math -march=native -mfpmath=sse -DNDEBUG
 
 # Standard all target
 all: hw1_analyze
 
 # HW 1 Analysis Code
 hw1_analyze: hw1_analyze.o ../src/MatrixMultiply.o
-	g++ -o hw1_analyze hw1_analyze.o ../src/MatrixMultiply.o
+	g++ ${OTHER_FLAGS} -o hw1_analyze hw1_analyze.o ../src/MatrixMultiply.o
 
 hw1_analyze.o:	hw1_analyze.cpp 
 	g++ ${OTHER_FLAGS} -Wall -c hw1_analyze.cpp

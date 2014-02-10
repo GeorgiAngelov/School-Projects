@@ -72,6 +72,7 @@ int main(int argc, char * argv[])
 		std::pair<unsigned short,unsigned short> rp = t->second;
 		scottgs::FloatMatrix l(lp.first,lp.second);
 		scottgs::FloatMatrix r(rp.first,rp.second);
+
 		initRandomMatrix(l);
 		initRandomMatrix(r);
 
