@@ -1,5 +1,5 @@
 
-MY_FLAGS= -O4 -funroll-loops -ffast-math -march=native -mfpmath=sse -DNDEBUG -fma=fused
+MY_FLAGS= -O4 -funroll-loops -ffast-math -march=native -mfpmath=sse
 
 # Standard all target
 all: hw1

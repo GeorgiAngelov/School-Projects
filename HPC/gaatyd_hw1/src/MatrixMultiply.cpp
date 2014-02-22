@@ -55,28 +55,19 @@ scottgs::FloatMatrix scottgs::MatrixMultiply::operator()(const scottgs::FloatMat
 	for (j = 0; j < m2_num_col; ++j)
 		for (i = 0; i < m2_num_row; ++i)
 			transposed[j*m2_num_row + i] = m1[i*m2_num_col + j];
-	
-	if(m1_num_row > 100 || m1_num_col > 100 || m2_num_row > 100 || m2_num_col > 100){
-		for (i = 0; i < m1_num_row; ++i)
-			//loop through each column of matrix 2
-			for (j = 0; j < m2_num_col; ++j)
-				//loop through each column of matrix 1
-				for (k = 0; k < m1_num_col; ++k)
-					r[i*m2_num_col + j] = r[i*m2_num_col + j] + m1[i*m1_num_col + k] * transposed[j*m1_num_col + k];
-	}else{
-		//loop through each row of matrix 1
-		for (ii = 0; ii < m1_num_row; ii+=block_size)
-			//loop through each column of matrix 2
-			for (jj = 0; jj < m2_num_col; jj+=block_size)
-				//loop through each column of matrix 1
-				for (kk = 0; kk < m1_num_col; kk+=block_size)
-					for (i = ii; i < std::min(m1_num_row, ii+block_size); ++i)
-						//loop through each column of matrix 2
-						for (j = jj; j < std::min(m2_num_col, jj+block_size); ++j)
-							//loop through each column of matrix 1
-							for (k = kk; k < std::min(m1_num_col, kk+block_size); ++k)
-								r[i*m2_num_col + j] = r[i*m2_num_col + j] + m1[i*m1_num_col + k] *transposed[j*m1_num_col + k];
-	}
+			
+	//loop through each row of matrix 1
+	for (ii = 0; ii < m1_num_row; ii+=block_size)
+		//loop through each column of matrix 2
+		for (jj = 0; jj < m2_num_col; jj+=block_size)
+			//loop through each column of matrix 1
+			for (kk = 0; kk < m1_num_col; kk+=block_size)
+				for (i = ii; i < std::min(m1_num_row, ii+block_size); ++i)
+					//loop through each column of matrix 2
+					for (j = jj; j < std::min(m2_num_col, jj+block_size); ++j)
+						//loop through each column of matrix 1
+						for (k = kk; k < std::min(m1_num_col, kk+block_size); ++k)
+							r[i*m2_num_col + j] = r[i*m2_num_col + j] + m1[i*m1_num_col + k] *transposed[j*m1_num_col + k];
 	
 	return result;
 }
