@@ -98,7 +98,12 @@ int main (int argc, char** argv){
 	int i,j, process_count=atoi(argv[2]), num_max=atoi(argv[3]), size=0;
 	int sizes[] = {9,11,17,29};
 	int sizes_count = 4;
-	std::vector<ResultType> results;
+	
+	//create results returned from all the vectors.
+	std::vector<std::vector<ResultType>> results;
+	results.reserve(process_count);
+	
+	
 	//create start and end chrono time points
 	std::chrono::time_point<std::chrono::system_clock> start, end;
 	std::cout << process_count << std::endl;
@@ -126,8 +131,11 @@ int main (int argc, char** argv){
 			//print the created vector.
 			std::cout << scottgs::vectorToCSV(copy) << std::endl;
 			//perform the test(delete this as it is not needed)
-			results = circularSubvectorMatch(sizes[i], copy, points, num_max, 0);
-			printResults(results, num_max);
+			results.push_back(circularSubvectorMatch(sizes[i], copy, points, num_max, 0));
+			results.push_back(circularSubvectorMatch(sizes[i], copy, points, num_max, 250));
+			results.push_back(circularSubvectorMatch(sizes[i], copy, points, num_max, 500));
+			results.push_back(circularSubvectorMatch(sizes[i], copy, points, num_max, 750));
+			printResults(results.at(1), num_max);
 			
 			//calculate end time.
 			end = std::chrono::system_clock::now();
