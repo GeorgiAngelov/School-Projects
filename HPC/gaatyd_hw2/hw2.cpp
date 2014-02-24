@@ -12,6 +12,13 @@
 #include <algorithm>
 #include "file_parser.hpp"
 #include "vectorCSV.hpp"
+#include "Splitter.hpp"
+
+struct segment{
+	pid_t proc_id;
+	unsigned int start;
+	unsigned int end;
+};
 
 std::vector<float> generateScottVector(const unsigned int size){
 	int i=0;
@@ -96,8 +103,6 @@ void printResults(std::vector<ResultType> results, const unsigned int n){
 std::vector<ResultType> circularSubvectorMatch(const unsigned int vector_size, std::vector<float> searchVector, VectorsMap circularVector, const unsigned int n, const unsigned int all_offset){
 	unsigned int i, j, row_index;
 	const unsigned int item_size = circularVector.size();
-	//72 because this is how many distances we will get per vector.
-	const unsigned int vector_space = circularVector.size()*72;
 	//vector for the returned top N results;
 	std::vector<ResultType> results;
 	results.reserve(n);
@@ -130,6 +135,7 @@ std::vector<ResultType> circularSubvectorMatch(const unsigned int vector_size, s
 			one.offset = i;
 			one.dist = dist;
 			
+			//Begins min heap process
 			if(results.size() < 10){
 				results.push_back(one);
 			}
@@ -142,9 +148,9 @@ std::vector<ResultType> circularSubvectorMatch(const unsigned int vector_size, s
 				 // Remove the last element from the vector
 				 results.pop_back();
 			}
-			//results.push_back(one);
 		}
 	}
+	//sort to fix the min heap operations
 	std::sort(results.begin(), results.end());
 	return results;
 }
@@ -174,11 +180,27 @@ int main (int argc, char** argv){
 		}
 	}
 	
+	float shm_size = 10 * sizeof(float);
+	int shmId;
+	key_t shmKey = 123469;
+	int shmFlag = IPC_CREAT | 0666;
+	float * shm;
+	
 	srand(34122);
 	int i,j, process_count=atoi(argv[2]), num_max=atoi(argv[3]), size=0;
 	//the size of the search vectors
 	int sizes[] = {9,11,17,29};
 	int sizes_count = 4;
+	//will hold the offsets for each process
+	int offsets[process_count];
+	
+	//initialize offsets
+	for(i=0; i< process_count; i++){
+		offsets[i] = total_rows/process_count;
+		//if at the last process, check to see if the division is not even
+		if(i==process_count-1)
+			offsets[i] += total_rows%process_count;
+	}
 	
 	//create the vector that will hold all the results from each vector before combining them
 	std::vector<std::vector<ResultType>> results;
@@ -193,12 +215,6 @@ int main (int argc, char** argv){
 	std::chrono::time_point<std::chrono::system_clock> start, end;
 	std::cout << process_count << std::endl;
 	
-	//create a parser object and pass it the filename
-	//and parse the file 
-	
-	//points = fileParser.parseFile();
-	//fileParser.doCleanUp();
-
 	//print header.
 	std::cout << "===========" << std::endl;
 	std::cout << " Put Data Set Count Here " << std::endl;
@@ -206,31 +222,64 @@ int main (int argc, char** argv){
 	
 	//loop through the 4 different sizes of vectors
 	for(i=0; i<sizes_count; i++){
+		//let the first process print the results.
 		std::cout << "-----------------" << std::endl;
 		std::cout << "Search: "<< sizes[i] << "-D" << std::endl;
 		std::cout << "-----------------" << std::endl;
-		for(j=0; j<1; j++){
-		    start = std::chrono::system_clock::now();
-			
-			//generate random vector of appropriate size
-			//std::vector<float> copy = generateRandomVector(sizes[i]);
-			
-			//get the test vector from Grant's example:
-			std::vector<float> copy = generateScottVector(sizes[i]);
-			
-			//print the created vector.
-			std::cout << scottgs::vectorToCSV(copy) << std::endl;
-			std::cout << "total circular vectors passed is: " << points.size() << std::endl;
-			//perform the test(delete this as it is not needed)
-			final_results = circularSubvectorMatch(sizes[i], copy, points, num_max, 0);
-			
-			//print top num_max results
-			printResults(final_results, num_max);
-			
-			//calculate end time.
-			end = std::chrono::system_clock::now();
-			std::chrono::duration<double> elapsed_seconds = end-start;
-			std::cout << "\nTime: " << elapsed_seconds.count() << " seconds" << std::endl;
+
+		//get an object of the process spawner class.
+		scottgs::Splitter splitter;
+		for (int p = 0; p < 2 ; ++p)
+		{
+			pid_t pid = splitter.spawn();
+			if (pid < 0)
+			{
+				std::cerr << "Could not fork!!! ("<< pid <<")" << std::endl;
+				
+				// do not exit, we may have a process 
+				// spawned from an earlier iteration
+				break; 
+			}
+			if (0 == pid) // Child
+			{
+				
+				
+				std::cout << "Child Process (" << pid << ")" << "And my number is : " << p << std::endl;
+				
+				//loop through the (30 vectors specified in the description)
+				for(j=0; j<1; j++){	
+					
+					start = std::chrono::system_clock::now();
+					
+					//generate random vector of appropriate size
+					//std::vector<float> copy = generateRandomVector(sizes[i]);
+					
+					//get the test vector from Grant's example:
+					std::vector<float> copy = generateScottVector(sizes[i]);
+					
+					//print the created vector.
+					std::cout << scottgs::vectorToCSV(copy) << std::endl;
+					
+					//perform the test(delete this as it is not needed)
+					//final_results = circularSubvectorMatch(sizes[i], copy, points, num_max, p, process_count);
+					
+					//print top num_max results
+					//printResults(final_results, num_max);
+					
+					//calculate end time.
+					end = std::chrono::system_clock::now();
+					std::chrono::duration<double> elapsed_seconds = end-start;
+					std::cout << "\nTime: " << elapsed_seconds.count() << " seconds" << std::endl;
+				}
+				_exit(0);
+			}
+			else
+			{
+				; // Nothing to do for the parent
+			}
 		}
+		//wait for all children before looping again.
+		splitter.reap_all();
 	}
+
 }
