@@ -1,5 +1,5 @@
 all: hw2
-options= -std=c++0x -g
+options= -std=c++0x -g -m64
 hw2: hw2.o file_parser.o
 	g++ ${options} hw2.o file_parser.o -O2 -o hw2 
 
