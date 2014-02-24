@@ -73,8 +73,8 @@ void printResults(std::vector<ResultType> results, const unsigned int n){
 	unsigned int i=0;
 	
 	//sort the results.
-	std::partial_sort(results.begin(), results.begin() + n, results.end());
-	results.resize(n);
+	//std::partial_sort(results.begin(), results.begin() + n, results.end());
+	//results.resize(n);
 	std::cout << "\tx" << "\t|" << "\ty" << "\t|" << "\toffset" << "\t|" << "\tscore" << std::endl;
 	std::cout << "---------+---------+--------+-----------" << std::endl;
 	//print the results
@@ -100,15 +100,12 @@ std::vector<ResultType> circularSubvectorMatch(const unsigned int vector_size, s
 	const unsigned int vector_space = circularVector.size()*72;
 	//vector for the returned top N results;
 	std::vector<ResultType> results;
-	results.reserve(vector_space);
+	results.reserve(n);
 	
 	//iterate over the whole set of vectors parsed from the file.
 	for (row_index=0; row_index < item_size; row_index++) {
 		//get a copy of the the vector at position row_index and remove it
-		//std::vector<float> tmp = circularVector.at(row_index);
 		std::vector<float> tmp = circularVector.at(row_index);
-		//erase the element so we use less memory
-		
 		//get the first and second key and erase them
 		float x = tmp.at(0);
 		tmp.erase(tmp.begin());
@@ -132,9 +129,23 @@ std::vector<ResultType> circularSubvectorMatch(const unsigned int vector_size, s
 			one.y = y;
 			one.offset = i;
 			one.dist = dist;
-			results.push_back(one);
+			
+			if(results.size() < 10){
+				results.push_back(one);
+			}
+			// Compare it to the max element in the heap
+			else if (one < results.front()) {
+				 // Add the new element to the vector
+				 results.push_back(one);
+				 // Move the existing minimum to the back and "re-heapify" the rest
+				 std::pop_heap(results.begin(), results.end());
+				 // Remove the last element from the vector
+				 results.pop_back();
+			}
+			//results.push_back(one);
 		}
 	}
+	std::sort(results.begin(), results.end());
 	return results;
 }
 
