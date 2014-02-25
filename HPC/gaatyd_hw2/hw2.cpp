@@ -78,18 +78,66 @@ std::vector<float> generateRandomVector(unsigned int size)
 	return rv;
 }
 
-void printResults(std::vector<ResultType> results, const unsigned int n){
+/**
+*	The function receives the shared memory segment and it gets it's values and prints the top 10 results
+*	The function also receives the number of results that need to be printed.
+* 	The function also receives the number of processes so it knows how to loop.
+*/
+void printResults(float* shm, const unsigned int n, const unsigned int process_count){
 	unsigned int i=0;
+	//total entries in the shared memory
+	const unsigned int shm_size = process_count*n*4;
+	ResultType one;
+	//UNCOMMENT WHEN READY TO DO THIS:
+	std::vector<ResultType> results;
+	
+	//run through shm_size to get all the points
+	for(i=0; i<shm_size; i++){
+		one.x = shm[i];
+		one.y = shm[i+1];
+		one.offset = shm[i+2];
+		one.dist = shm[i+3];
+		
+		//Begins min heap process
+		if(results.size() < 10){
+			results.push_back(one);
+		}
+		// Compare it to the max element in the heap
+		else if (one < results.front()) {
+			 // Add the new element to the vector
+			 results.push_back(one);
+			 // Move the existing minimum to the back and "re-heapify" the rest
+			 std::pop_heap(results.begin(), results.end());
+			 // Remove the last element from the vector
+			 results.pop_back();
+		}
+		i+=3;
+	}
+	
+	/*;
+	for(i=0; i<shm_size; i++){
+		results.at(count).x= shm[i];
+		results.at(count).y = shm[i+1];
+		results.at(count).offset = shm[i+2];
+		results.at(count).dist = shm[i+3];
+		count++;
+		i+=3;
+	}
+	
+/*	for(i=0; i<process_count*n; i++){
+		one = results.at(i);
+		std::cout << one.x << "\t|" << one.y << "\t|" << one.offset << "\t|" << one.dist << std::endl;
+	}*/
 	
 	//sort the results.
-	//std::partial_sort(results.begin(), results.begin() + n, results.end());
+	//std::sort(results.begin(), results.end());
 	//results.resize(n);
 	std::cout << "\tx" << "\t|" << "\ty" << "\t|" << "\toffset" << "\t|" << "\tscore" << std::endl;
 	std::cout << "---------+---------+--------+-----------" << std::endl;
 	//print the results
-	for(i; i<n; i++){
-		ResultType res = results.at(i);
-		std::cout << res.x << "\t|" << res.y << "\t|" << res.offset << "\t|" << res.dist << std::endl;
+	for(i=0; i<n; i++){
+		one = results.at(i);
+		std::cout << one.x << "\t|" << one.y << "\t|" << one.offset << "\t|" << one.dist << std::endl;
 	}
 	std::cout << "(" << n << " rows)" << std::endl;
 }
@@ -231,7 +279,6 @@ std::vector<ResultType> circularSubvectorMatch(const unsigned int vector_size, s
 	//if we are not running a test, save to memory
 	if(!is_test){
 		for(i=shm_start; i<shm_end; i++){
-			std::cout << "count is " << count << std::endl;
 			shm[i] = results.at(count).x;
 			shm[i+1] = results.at(count).y;
 			shm[i+2] = results.at(count).offset;
@@ -387,7 +434,7 @@ int main (int argc, char** argv){
 					final_results = circularSubvectorMatch(sizes[i], copy, points, num_max, segments.at(p).start, segments.at(p).end, segments.at(p).shm_start, segments.at(p).shm_end, shm, false);
 					
 					//print top num_max results
-					printResults(shm, num_max);
+					printResults(shm, num_max, process_count);
 					
 					//calculate end time.
 					end = std::chrono::system_clock::now();
