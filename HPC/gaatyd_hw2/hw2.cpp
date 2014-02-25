@@ -160,7 +160,6 @@ void printResults(float* shm, unsigned int n, unsigned int process_count, unsign
 	//total entries in the shared memory
 	const unsigned int shm_size = process_count*n*4;
 	ResultType one;
-	//UNCOMMENT WHEN READY TO DO THIS:
 	std::vector<ResultType> results;
 
 	for(i=0; i<shm_size; i++){
@@ -173,12 +172,12 @@ void printResults(float* shm, unsigned int n, unsigned int process_count, unsign
 	}
 	std::sort(results.begin(), results.end());
 	results.resize(n);
-	std::cout << "\tx" << "\t|" << "\ty" << "\t|" << "\toffset" << "\t|" << "\tscore" << std::endl;
-	std::cout << "---------+---------+--------+-----------" << std::endl;
+	std::cout << std::setw(10) << "x" << "|" << std::setw(10) << "y" << "|" << std::setw(8) << "offset" << "|" << std::setw(12) << "score" << std::endl;
+	std::cout << "----------+----------+--------+------------" << std::endl;
 	//print the results
 	for(i=0; i<n; i++){
 		one = results.at(i);
-		std::cout << one.x << "\t|" << one.y << "\t|" << one.offset << "\t|" << one.dist << std::endl;
+		std::cout << std::setw(10) << one.x << "|" << std::setw(10) << one.y << "|" << std::setw(8) << one.offset << "|" << std::setw(12) << one.dist << std::endl;
 	}
 	std::cout << "(" << n << " rows)" << std::endl;
 	
@@ -267,7 +266,6 @@ std::vector<ResultType> circularSubvectorMatch(const unsigned int vector_size, s
 			i+=3;
 		}
 	}
-	
 	return results;
 }
 
