@@ -268,6 +268,15 @@ std::vector<ResultType> circularSubvectorMatch(const unsigned int vector_size, s
 	}
 	return results;
 }
+//FOR PAPER
+/*
+	Introduction
+	algorithm
+	data structure
+	graphs and explanation
+	conclusion
+*/
+
 
 int main (int argc, char** argv){
 	if(argc < 4){
@@ -328,14 +337,19 @@ int main (int argc, char** argv){
 		std::cerr << "Init: Failed to attach shared memory (" << shmId << ")" << std::endl; 
 		exit(1);
 	}
-	
+	//get number of items for each process in shared memory
+	const unsigned int per_procc_mem = num_max*4;
 	//initialize offsets
 	for(i=0; i< process_count; i++){
+		//get segments for dataset
 		int size = total_rows/process_count;
 		segments.at(i).start = size*i;
 		segments.at(i).end = size*i + size;
-		segments.at(i).shm_start = i*40;
-		segments.at(i).shm_end = i*40 + 40;
+		
+		//get segments for shared memory location segment for each process
+		segments.at(i).shm_start = i*per_procc_mem;
+		segments.at(i).shm_end = i*per_procc_mem + per_procc_mem;
+		
 		//if at the last process, check to see if the division is not even
 		if(i==process_count-1)
 			segments.at(i).end += total_rows%process_count;
@@ -362,6 +376,8 @@ int main (int argc, char** argv){
 		/*copy = generateScottVector(sizes[i]);
 		final_results = circularSubvectorMatch(sizes[i], &copy, &points, num_max, 0, total_rows, 0, 0, NULL, true);
 		copy.clear();
+		//PRINT WHAT RESULT IS EXPECTED
+		//PRINT WHAT RESULT IS RECEIVED
 		if(runTest(sizes[i], &final_results. num_max)){
 			std::cout << "Test was Successful against vector: " << std::endl;
 			std::cout << scottgs::vectorToCSV(generateScottVector(sizes[i])) << std::endl;
@@ -380,35 +396,34 @@ int main (int argc, char** argv){
 		//for testing purposes I am only doing 1.
 		generated_vectors.at(0).reserve(sizes[i]);
 		generated_vectors.at(0) = generateScottVector(sizes[i]);
-		
-		//let the first process print the results.
-		std::cout << "-----------------" << std::endl;
-		std::cout << "Search: "<< sizes[i] << "-D" << std::endl;
-		std::cout << "-----------------" << std::endl;
-		//get an object of the process spawner class.
-		start = std::chrono::system_clock::now();
-		scottgs::Splitter splitter;
-		for (int p = 0; p < process_count ; ++p)
-		{
-			pid_t pid = splitter.spawn();
-			if (pid < 0)
+		//loop through the (30 vectors specified in the description)
+		for(j=0; j<1; j++){
+			//let the first process print the results.
+			std::cout << "-----------------" << std::endl;
+			std::cout << "Search: "<< sizes[i] << "-D" << std::endl;
+			std::cout << "-----------------" << std::endl;
+			//get an object of the process spawner class..
+			start = std::chrono::system_clock::now();
+			scottgs::Splitter splitter;
+			for (int p = 0; p < process_count; ++p)
 			{
-				std::cerr << "Could not fork!!! ("<< pid <<")" << std::endl;
-				// do not exit, we may have a process 
-				// spawned from an earlier iteration
-				break; 
-			}
-			if (0 == pid) // Child
-			{
-				/* Attach shared memory */
-				if((shm = (float *)shmat(shmId, NULL, 0)) == (float *) -1)
+				pid_t pid = splitter.spawn();
+				if (pid < 0)
 				{
-					std::cerr << "Init: Failed to attach shared memory (" << shmId << ")" << std::endl; 
-					exit(1);
+					std::cerr << "Could not fork!!! ("<< pid <<")" << std::endl;
+					// do not exit, we may have a process 
+					// spawned from an earlier iteration
+					break; 
 				}
-				//loop through the (30 vectors specified in the description)
-				for(j=0; j<1; j++){	
-						
+				if (0 == pid) // Child
+				{
+					/* Attach shared memory */
+					if((shm = (float *)shmat(shmId, NULL, 0)) == (float *) -1)
+					{
+						std::cerr << "Init: Failed to attach shared memory (" << shmId << ")" << std::endl; 
+						exit(1);
+					}
+		
 					//let only process 0 to print this vector.
 					if(p == 0){
 						//print the created vector.
@@ -419,23 +434,26 @@ int main (int argc, char** argv){
 					//pas the size of the search vector, the auto generated vector, the vectors from the file,
 					//the number of top results to return, and the offset from which to search.
 					circularSubvectorMatch(sizes[i], &generated_vectors[j], &points, num_max, segments.at(p).start, segments.at(p).end, segments.at(p).shm_start, segments.at(p).shm_end, shm, false);
-				}
-				_exit(0);
+					
+					//child exists
+					_exit(0);
+				}//end if pid==0
 			}
+			//wait for all children before looping again.
+			splitter.reap_all();
+			//calculate end time.
+			end = std::chrono::system_clock::now();
+			//now perform printing and stuff. from shared memory.		
+			//print top num_max results
+			printResults(shm, num_max, process_count, sizes[i]);
+			//print end time		
+			std::chrono::duration<double> elapsed_seconds = end-start;
+			std::cout << "\nTime: " << elapsed_seconds.count() << " seconds" << std::endl;
 		}
-		//wait for all children before looping again.
-		splitter.reap_all();
-		//calculate end time.
-		end = std::chrono::system_clock::now();
-		//now perform printing and stuff. from shared memory.		
-		//print top num_max results
-		printResults(shm, num_max, process_count, sizes[i]);
-		//print end time		
-		std::chrono::duration<double> elapsed_seconds = end-start;
-		std::cout << "\nTime: " << elapsed_seconds.count() << " seconds" << std::endl;
 	}
+	shmdt(shm);
 	//delete shared memory after we are done with it.
-	shmctl(shmKey, IPC_RMID, NULL);
+	shmctl(shmId, IPC_RMID, NULL);
 	
 	return 0;
 }
