@@ -94,6 +94,78 @@ void printResults(std::vector<ResultType> results, const unsigned int n){
 	std::cout << "(" << n << " rows)" << std::endl;
 }
 
+bool runTest(const unsigned int vector_size, std::vector<ResultType> searchVector){
+	float test_array[10][3];
+	switch(vector_size){
+		case 9:
+			test_array = {
+			{34.4661,68.3391,290},
+			{34.4661,68.3552,140},
+			{34.4664,68.356,140},
+			{34.467,68.3493,20},
+			{34.4664,68.3482,355},
+			{34.4672,68.3638,175},
+			{34.4667,68.3502,25},
+			{34.4675,68.3399,265},
+			{34.4678,68.3574,355},
+			{34.4675,68.3521,25}};
+		break;
+		
+		case 11:
+			test_array =  {
+			{34.4678,68.3346,310},
+			{34.4675,68.3343,310},
+			{34.4672,68.3341,310},
+			{34.467,68.3338,310},
+			{34.4672,68.3343,310},
+			{34.4664,68.351,245},
+			{34.4675,68.3366,215},
+			{34.4678,68.3349,310},  
+			{34.4672,68.3368,215},
+			{34.4661,68.3652,105}};
+		break;
+		
+		case 17:
+			test_array =  {
+			{34.467,68.3624,285},
+			{34.4672,68.3357,155},
+			{34.467,68.3446,155},
+			{34.467,68.3593,75},
+			{34.4659,68.3396,340},
+			{34.4678,68.3571,185},
+			{34.4664,68.3624,325},
+			{34.4678,68.3516,45},
+			{34.4664,68.3471,205},
+			{34.4664,68.3352,10}};
+		break;
+		
+		case 29:
+			test_array = {
+			{34.4667,68.3568,335},
+			{34.4661,68.3441,130},
+			{34.4661,68.3357,145},
+			{34.4664,68.3574,330},
+			{34.4659,68.3435,130},
+			{34.4664,68.3504,60},
+			{34.4664,68.3366,145},
+			{34.4664,68.3374,145},
+			{34.467,68.3385,260},
+			{34.4667,68.3629,10}};
+		break;
+	}
+	
+	for(int i=0; i<10; i++){
+		if(test_array[i][0] != searchVector.at(i).x)
+			return false;
+		if(test_array[i][1] != searchVector.at(i).y)
+			return false;
+		if(test_array[i][2] != searchVector.at(i).offset)
+			return false;
+	}
+	
+	return true;
+}
+
 /**
 *	The function computes the difference between a search vector and a segment of a circular vector.
 *	@vector_size - the size of the segment we are comparing with
@@ -102,7 +174,7 @@ void printResults(std::vector<ResultType> results, const unsigned int n){
 *	@n - number of top results to return
 *	@all_offest - value used to indicate from where to begin the search.
 */
-std::vector<ResultType> circularSubvectorMatch(const unsigned int vector_size, std::vector<float> searchVector, VectorsMap circularVector, const unsigned int n, unsigned int begin_index, unsigned int end_index, unsigned int shm_start, unsigned int shm_end, float* shm){
+std::vector<ResultType> circularSubvectorMatch(const unsigned int vector_size, std::vector<float> searchVector, VectorsMap circularVector, const unsigned int n, unsigned int begin_index, unsigned int end_index, unsigned int shm_start, unsigned int shm_end, float* shm, const bool is_test){
 	unsigned int i, j, row_index;
 	const unsigned int item_size = circularVector.size();
 	//vector for the returned top N results;
@@ -156,16 +228,19 @@ std::vector<ResultType> circularSubvectorMatch(const unsigned int vector_size, s
 	std::sort(results.begin(), results.end());
 	int count = 0;
 	
-	/*(for(i=shm_start; i<shm_end; i++){
-		std::cout << "count is " << count << std::endl;
-		shm[i] = results.at(count).x;
-		shm[i+1] = results.at(count).y;
-		shm[i+2] = results.at(count).offset;
-		shm[i+3] = results.at(count).dist;
-		count++;
-		std::cout << " shm[i] " <<  shm[i] << " shm[i+1] " <<  shm[i+1] << " shm[i+2] " <<  shm[i+2] << " shm[i+3] " <<  shm[i+3] << std::endl; 
-		i+=3;
-	}*/
+	//if we are not running a test, save to memory
+	if(!is_test){
+		for(i=shm_start; i<shm_end; i++){
+			std::cout << "count is " << count << std::endl;
+			shm[i] = results.at(count).x;
+			shm[i+1] = results.at(count).y;
+			shm[i+2] = results.at(count).offset;
+			shm[i+3] = results.at(count).dist;
+			count++;
+			//std::cout << " shm[i] " <<  shm[i] << " shm[i+1] " <<  shm[i+1] << " shm[i+2] " <<  shm[i+2] << " shm[i+3] " <<  shm[i+3] << std::endl; 
+			i+=3;
+		}
+	}
 	
 	return results;
 }
@@ -237,6 +312,7 @@ int main (int argc, char** argv){
 	//create the final results vector
 	//reserve enough space to be able to merge all of our processes' stuff
 	std::vector<ResultType> final_results;
+	std::vector<float> copy;
 	final_results.reserve(process_count*num_max);
 
 	//create start and end chrono time points
@@ -248,12 +324,23 @@ int main (int argc, char** argv){
 	std::cout << "===========" << std::endl;
 	
 	//loop through the 4 different sizes of vectors
-	for(i=0; i<1; i++){
+	for(i=0; i<sizes_count; i++){
+	
+		//run the test:
+		copy = generateScottVector(sizes[i]);
+		final_results = circularSubvectorMatch(sizes[i], copy, points, num_max, 0, total_rows, 0, 0, NULL, true);
+		if(runTest(sizes[i], final_results)){
+			std::cout << "Test was Successful against vector: " << std::endl;
+			std::cout << scottgs::vectorToCSV(generateScottVector(sizes[i])) << std::endl;
+		}else{
+			std::cout << "Test FAILED against vector: " << std::endl;
+			std::cout << scottgs::vectorToCSV(generateScottVector(sizes[i])) << std::endl;
+			exit(-1);
+		}
 		//let the first process print the results.
 		std::cout << "-----------------" << std::endl;
 		std::cout << "Search: "<< sizes[i] << "-D" << std::endl;
 		std::cout << "-----------------" << std::endl;
-
 		//get an object of the process spawner class.
 		scottgs::Splitter splitter;
 		for (int p = 0; p < process_count ; ++p)
@@ -271,7 +358,7 @@ int main (int argc, char** argv){
 			{
 				/* Attach shared memory */
 				if((shm = (float *)shmat(shmId, NULL, 0)) == (float *) -1)
-				{ 
+				{
 					std::cerr << "Init: Failed to attach shared memory (" << shmId << ")" << std::endl; 
 					exit(1);
 				}else{
@@ -286,10 +373,10 @@ int main (int argc, char** argv){
 					start = std::chrono::system_clock::now();
 					
 					//generate random vector of appropriate size
-					//std::vector<float> copy = generateRandomVector(sizes[i]);
+					copy = generateRandomVector(sizes[i]);
 					
 					//get the test vector from Grant's example:
-					std::vector<float> copy = generateScottVector(sizes[i]);
+					copy = generateScottVector(sizes[i]);
 					
 					//print the created vector.
 					std::cout << scottgs::vectorToCSV(copy) << std::endl;
@@ -297,10 +384,10 @@ int main (int argc, char** argv){
 					//perform the test(delete this as it is not needed)
 					//pas the size of the search vector, the auto generated vector, the vectors from the file,
 					//the number of top results to return, and the offset from which to search.
-					final_results = circularSubvectorMatch(sizes[i], copy, points, num_max, segments.at(p).start, segments.at(p).end, segments.at(p).shm_start, segments.at(p).shm_end, shm);
+					final_results = circularSubvectorMatch(sizes[i], copy, points, num_max, segments.at(p).start, segments.at(p).end, segments.at(p).shm_start, segments.at(p).shm_end, shm, false);
 					
 					//print top num_max results
-					printResults(final_results, num_max);
+					printResults(shm, num_max);
 					
 					//calculate end time.
 					end = std::chrono::system_clock::now();
@@ -314,7 +401,5 @@ int main (int argc, char** argv){
 		splitter.reap_all();
 		
 		//now perform printing and stuff. from shared memory.
-		
 	}
-
 }
