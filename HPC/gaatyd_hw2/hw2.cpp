@@ -338,7 +338,15 @@ int main (int argc, char** argv){
 	{
 		std::cerr << "Init: Failed to initialize shared memory (" << shmId << ")" << std::endl; 
 		exit(1);
-	}	
+	}
+	
+	if((shm = (float *)shmat(shmId, NULL, 0)) == (float *) -1)
+	{
+		std::cerr << "Init: Failed to attach shared memory (" << shmId << ")" << std::endl; 
+		exit(1);
+	}else{
+		std::cout << "Parent Process ATTACHED TO MEMORY "<< std::endl;
+	}
 	
 	//initialize offsets
 	for(i=0; i< process_count; i++){
@@ -432,10 +440,7 @@ int main (int argc, char** argv){
 					//pas the size of the search vector, the auto generated vector, the vectors from the file,
 					//the number of top results to return, and the offset from which to search.
 					final_results = circularSubvectorMatch(sizes[i], copy, points, num_max, segments.at(p).start, segments.at(p).end, segments.at(p).shm_start, segments.at(p).shm_end, shm, false);
-					
-					//print top num_max results
-					printResults(shm, num_max, process_count);
-					
+			
 					//calculate end time.
 					end = std::chrono::system_clock::now();
 					std::chrono::duration<double> elapsed_seconds = end-start;
@@ -446,7 +451,9 @@ int main (int argc, char** argv){
 		}
 		//wait for all children before looping again.
 		splitter.reap_all();
-		
-		//now perform printing and stuff. from shared memory.
+		//now perform printing and stuff. from shared memory.		
+		//print top num_max results
+		printResults(shm, num_max, process_count);
 	}
+	shm = NULL;
 }
