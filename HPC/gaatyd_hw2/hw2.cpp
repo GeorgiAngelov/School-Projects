@@ -240,7 +240,7 @@ std::vector<ResultType> circularSubvectorMatch(const unsigned int vector_size, s
 			if(results.size() < 10){
 				results.push_back(one);
 			}
-			// Compare it to the max element in the heap
+			// Compare it to the max element in the heap 
 			else if (one < results.front()) {
 				 // Add the new element to the vector
 				 results.push_back(one);
