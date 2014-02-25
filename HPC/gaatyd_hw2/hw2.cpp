@@ -78,70 +78,6 @@ std::vector<float> generateRandomVector(unsigned int size)
 	return rv;
 }
 
-/**
-*	The function receives the shared memory segment and it gets it's values and prints the top 10 results
-*	The function also receives the number of results that need to be printed.
-* 	The function also receives the number of processes so it knows how to loop.
-*/
-void printResults(float* shm, const unsigned int n, const unsigned int process_count){
-	unsigned int i=0;
-	//total entries in the shared memory
-	const unsigned int shm_size = process_count*n*4;
-	ResultType one;
-	//UNCOMMENT WHEN READY TO DO THIS:
-	std::vector<ResultType> results;
-	
-	//run through shm_size to get all the points
-	for(i=0; i<shm_size; i++){
-		one.x = shm[i];
-		one.y = shm[i+1];
-		one.offset = shm[i+2];
-		one.dist = shm[i+3];
-		
-		//Begins min heap process
-		if(results.size() < 10){
-			results.push_back(one);
-		}
-		// Compare it to the max element in the heap
-		else if (one < results.front()) {
-			 // Add the new element to the vector
-			 results.push_back(one);
-			 // Move the existing minimum to the back and "re-heapify" the rest
-			 std::pop_heap(results.begin(), results.end());
-			 // Remove the last element from the vector
-			 results.pop_back();
-		}
-		i+=3;
-	}
-	
-	/*;
-	for(i=0; i<shm_size; i++){
-		results.at(count).x= shm[i];
-		results.at(count).y = shm[i+1];
-		results.at(count).offset = shm[i+2];
-		results.at(count).dist = shm[i+3];
-		count++;
-		i+=3;
-	}
-	
-/*	for(i=0; i<process_count*n; i++){
-		one = results.at(i);
-		std::cout << one.x << "\t|" << one.y << "\t|" << one.offset << "\t|" << one.dist << std::endl;
-	}*/
-	
-	//sort the results.
-	//std::sort(results.begin(), results.end());
-	//results.resize(n);
-	std::cout << "\tx" << "\t|" << "\ty" << "\t|" << "\toffset" << "\t|" << "\tscore" << std::endl;
-	std::cout << "---------+---------+--------+-----------" << std::endl;
-	//print the results
-	for(i=0; i<n; i++){
-		one = results.at(i);
-		std::cout << one.x << "\t|" << one.y << "\t|" << one.offset << "\t|" << one.dist << std::endl;
-	}
-	std::cout << "(" << n << " rows)" << std::endl;
-}
-
 bool runTest(const unsigned int vector_size, std::vector<ResultType> searchVector){
 	float test_array[10][3];
 	switch(vector_size){
@@ -215,6 +151,45 @@ bool runTest(const unsigned int vector_size, std::vector<ResultType> searchVecto
 }
 
 /**
+*	The function receives the shared memory segment and it gets it's values and prints the top 10 results
+*	The function also receives the number of results that need to be printed.
+* 	The function also receives the number of processes so it knows how to loop.
+*/
+void printResults(float* shm, unsigned int n, unsigned int process_count, unsigned int vector_size){
+	unsigned int i=0;
+	//total entries in the shared memory
+	const unsigned int shm_size = process_count*n*4;
+	ResultType one;
+	//UNCOMMENT WHEN READY TO DO THIS:
+	std::vector<ResultType> results;
+
+	for(i=0; i<shm_size; i++){
+		one.x = shm[i];
+		one.y = shm[i+1];
+		one.offset = shm[i+2];
+		one.dist = shm[i+3];
+		results.push_back(one);
+		i+=3;
+	}
+	std::sort(results.begin(), results.end());
+	results.resize(n);
+	std::cout << "\tx" << "\t|" << "\ty" << "\t|" << "\toffset" << "\t|" << "\tscore" << std::endl;
+	std::cout << "---------+---------+--------+-----------" << std::endl;
+	//print the results
+	for(i=0; i<n; i++){
+		one = results.at(i);
+		std::cout << one.x << "\t|" << one.y << "\t|" << one.offset << "\t|" << one.dist << std::endl;
+	}
+	std::cout << "(" << n << " rows)" << std::endl;
+	
+	if(runTest(vector_size, results)){
+		std::cout << " Test SUCCESSFUL with size " << vector_size << std::endl;
+	}else{
+		std::cout << " Test UNSUCCESSFUL with size " << vector_size << std::endl;
+	}
+}
+
+/**
 *	The function computes the difference between a search vector and a segment of a circular vector.
 *	@vector_size - the size of the segment we are comparing with
 *	@searchVector - the generated vector which we use to subtract each point from our circular vector
@@ -228,30 +203,34 @@ std::vector<ResultType> circularSubvectorMatch(const unsigned int vector_size, s
 	//vector for the returned top N results;
 	std::vector<ResultType> results;
 	results.reserve(n);
-	std::cout << "In circularSubVectorMatch and I am iterating over " << begin_index << " and " << end_index << std::endl;
+	ResultType one;
+	std::vector<float> tmp;
+	float x, y, dist, dist_tmp;
+	int offset;
+	
 	//iterate over the whole set of vectors parsed from the file.
 	for (row_index=begin_index; row_index < end_index; row_index++) {
 		//get a copy of the the vector at position row_index and remove it
-		std::vector<float> tmp = circularVector.at(row_index);
+		tmp = circularVector.at(row_index);
 		//get the first and second key and erase them
-		float x = tmp.at(0);
+		x = tmp.at(0);
 		tmp.erase(tmp.begin());
-		float y = tmp.at(0);
+		y = tmp.at(0);
 		tmp.erase(tmp.begin());
-		//std::cout << " item size is " << tmp.size() << std::endl;
+
 		//run through every vector point at steps of 5
 		for(i=0; i<VECTOR_COUNT; i+=5){
-			float dist = 0;
-			int offset = i;
-			
+			dist = 0;
+			offset = i;
+			dist_tmp = 0;
 			//loop through the vector size(9,11,17,29)
 			for(j=0; j<vector_size; j++){
-				const float dist_tmp = fabs(searchVector.at(j) - tmp.at((j+i)%360));
+				dist_tmp = fabs(searchVector.at(j) - tmp.at((j+i)%360));
 				dist += dist_tmp;
 			}
 			
 			//put the result into the structure
-			ResultType one;
+			
 			one.x = x;
 			one.y = y;
 			one.offset = i;
@@ -284,7 +263,6 @@ std::vector<ResultType> circularSubvectorMatch(const unsigned int vector_size, s
 			shm[i+2] = results.at(count).offset;
 			shm[i+3] = results.at(count).dist;
 			count++;
-			//std::cout << " shm[i] " <<  shm[i] << " shm[i+1] " <<  shm[i+1] << " shm[i+2] " <<  shm[i+2] << " shm[i+3] " <<  shm[i+3] << std::endl; 
 			i+=3;
 		}
 	}
@@ -305,6 +283,8 @@ int main (int argc, char** argv){
 	line = (char*)malloc(sizeof(char)*LINE_MAX);
 	VectorsMap points;
 	Parser fileParser;
+	//vectors that will be generated for the runs.
+	std::vector<std::vector<float>> generated_vectors(30);
 
 	//parse the file line by line
 	while(fgets(line, LINE_MAX, fPtr)){
@@ -329,7 +309,9 @@ int main (int argc, char** argv){
 	size_t memory_space = process_count*40;
 	float shm_size = memory_space * sizeof(float);
 	int shmId;
-	key_t shmKey = 5512313;
+	// use current time as seed for random generator
+	std::srand(std::time(0));
+	key_t shmKey = std::rand();
 	int shmFlag = IPC_CREAT | 0666;
 	float * shm;
 	
@@ -344,8 +326,6 @@ int main (int argc, char** argv){
 	{
 		std::cerr << "Init: Failed to attach shared memory (" << shmId << ")" << std::endl; 
 		exit(1);
-	}else{
-		std::cout << "Parent Process ATTACHED TO MEMORY "<< std::endl;
 	}
 	
 	//initialize offsets
@@ -392,11 +372,22 @@ int main (int argc, char** argv){
 			std::cout << scottgs::vectorToCSV(generateScottVector(sizes[i])) << std::endl;
 			exit(-1);
 		}
+		
+		//generate 30 random vectors of size size[i]
+		//for(int ii=0; ii< 30; ii++){
+		//	generated_vectors.at(ii) = generateRandomVector(sizes[ii]);
+		//}
+		
+		//for testing purposes I am only doing 1.
+		generated_vectors.at(0).reserve(sizes[i]);
+		generated_vectors.at(0) = generateScottVector(sizes[i]);
+		
 		//let the first process print the results.
 		std::cout << "-----------------" << std::endl;
 		std::cout << "Search: "<< sizes[i] << "-D" << std::endl;
 		std::cout << "-----------------" << std::endl;
 		//get an object of the process spawner class.
+		start = std::chrono::system_clock::now();
 		scottgs::Splitter splitter;
 		for (int p = 0; p < process_count ; ++p)
 		{
@@ -404,7 +395,6 @@ int main (int argc, char** argv){
 			if (pid < 0)
 			{
 				std::cerr << "Could not fork!!! ("<< pid <<")" << std::endl;
-				
 				// do not exit, we may have a process 
 				// spawned from an earlier iteration
 				break; 
@@ -416,44 +406,38 @@ int main (int argc, char** argv){
 				{
 					std::cerr << "Init: Failed to attach shared memory (" << shmId << ")" << std::endl; 
 					exit(1);
-				}else{
-					std::cout << "Child Process ATTACHED TO MEMORY And my number is : " << p << std::endl;
 				}
-				
-				std::cout << "Child Process (" << pid << ")" << "And my number is : " << p << std::endl;
-				std::cout << "Child Process (" << pid << ")" << "And my offset is : " << segments.at(p).start << "and : " << segments.at(p).end << std::endl;
 				//loop through the (30 vectors specified in the description)
 				for(j=0; j<1; j++){	
 					
-					start = std::chrono::system_clock::now();
-					
-					//generate random vector of appropriate size
-					copy = generateRandomVector(sizes[i]);
-					
-					//get the test vector from Grant's example:
-					copy = generateScottVector(sizes[i]);
-					
-					//print the created vector.
-					std::cout << scottgs::vectorToCSV(copy) << std::endl;
-					
+							
+					//let only process 0 to print this vector.
+					if(p == 0){
+						//print the created vector.
+						std::cout << scottgs::vectorToCSV(generated_vectors[j]) << std::endl;
+					}
+
 					//perform the test(delete this as it is not needed)
 					//pas the size of the search vector, the auto generated vector, the vectors from the file,
 					//the number of top results to return, and the offset from which to search.
-					final_results = circularSubvectorMatch(sizes[i], copy, points, num_max, segments.at(p).start, segments.at(p).end, segments.at(p).shm_start, segments.at(p).shm_end, shm, false);
-			
-					//calculate end time.
-					end = std::chrono::system_clock::now();
-					std::chrono::duration<double> elapsed_seconds = end-start;
-					std::cout << "\nTime: " << elapsed_seconds.count() << " seconds" << std::endl;
+					circularSubvectorMatch(sizes[i], generated_vectors[j], points, num_max, segments.at(p).start, segments.at(p).end, segments.at(p).shm_start, segments.at(p).shm_end, shm, false);
 				}
 				_exit(0);
 			}
 		}
 		//wait for all children before looping again.
 		splitter.reap_all();
+		//calculate end time.
+		end = std::chrono::system_clock::now();
 		//now perform printing and stuff. from shared memory.		
 		//print top num_max results
-		printResults(shm, num_max, process_count);
+		printResults(shm, num_max, process_count, sizes[i]);
+		//print end time		
+		std::chrono::duration<double> elapsed_seconds = end-start;
+		std::cout << "\nTime: " << elapsed_seconds.count() << " seconds" << std::endl;
 	}
-	shm = NULL;
+	//delete shared memory after we are done with it.
+	shmctl(shmKey, IPC_RMID, NULL);
+	
+	return 0;
 }
