@@ -15,9 +15,11 @@
 #include "Splitter.hpp"
 
 struct segment{
-	pid_t proc_id;
+	int proc_id;
 	unsigned int start;
 	unsigned int end;
+	unsigned int shm_start;
+	unsigned int shm_end;
 };
 
 std::vector<float> generateScottVector(const unsigned int size){
@@ -100,15 +102,15 @@ void printResults(std::vector<ResultType> results, const unsigned int n){
 *	@n - number of top results to return
 *	@all_offest - value used to indicate from where to begin the search.
 */
-std::vector<ResultType> circularSubvectorMatch(const unsigned int vector_size, std::vector<float> searchVector, VectorsMap circularVector, const unsigned int n, const unsigned int all_offset){
+std::vector<ResultType> circularSubvectorMatch(const unsigned int vector_size, std::vector<float> searchVector, VectorsMap circularVector, const unsigned int n, unsigned int begin_index, unsigned int end_index, unsigned int shm_start, unsigned int shm_end, float* shm){
 	unsigned int i, j, row_index;
 	const unsigned int item_size = circularVector.size();
 	//vector for the returned top N results;
 	std::vector<ResultType> results;
 	results.reserve(n);
-	
+	std::cout << "In circularSubVectorMatch and I am iterating over " << begin_index << " and " << end_index << std::endl;
 	//iterate over the whole set of vectors parsed from the file.
-	for (row_index=0; row_index < item_size; row_index++) {
+	for (row_index=begin_index; row_index < end_index; row_index++) {
 		//get a copy of the the vector at position row_index and remove it
 		std::vector<float> tmp = circularVector.at(row_index);
 		//get the first and second key and erase them
@@ -152,6 +154,19 @@ std::vector<ResultType> circularSubvectorMatch(const unsigned int vector_size, s
 	}
 	//sort to fix the min heap operations
 	std::sort(results.begin(), results.end());
+	int count = 0;
+	
+	/*(for(i=shm_start; i<shm_end; i++){
+		std::cout << "count is " << count << std::endl;
+		shm[i] = results.at(count).x;
+		shm[i+1] = results.at(count).y;
+		shm[i+2] = results.at(count).offset;
+		shm[i+3] = results.at(count).dist;
+		count++;
+		std::cout << " shm[i] " <<  shm[i] << " shm[i+1] " <<  shm[i+1] << " shm[i+2] " <<  shm[i+2] << " shm[i+3] " <<  shm[i+3] << std::endl; 
+		i+=3;
+	}*/
+	
 	return results;
 }
 
@@ -179,27 +194,40 @@ int main (int argc, char** argv){
 			total_rows++;	
 		}
 	}
-	
-	float shm_size = 10 * sizeof(float);
-	int shmId;
-	key_t shmKey = 123469;
-	int shmFlag = IPC_CREAT | 0666;
-	float * shm;
-	
+
 	srand(34122);
 	int i,j, process_count=atoi(argv[2]), num_max=atoi(argv[3]), size=0;
 	//the size of the search vectors
 	int sizes[] = {9,11,17,29};
 	int sizes_count = 4;
 	//will hold the offsets for each process
-	int offsets[process_count];
+	std::vector<segment> segments(process_count);
+	
+	//initialize shared memory
+	size_t memory_space = process_count*40;
+	float shm_size = memory_space * sizeof(float);
+	int shmId;
+	key_t shmKey = 5512313;
+	int shmFlag = IPC_CREAT | 0666;
+	float * shm;
+	
+	/* Initialize shared memory */
+	if((shmId = shmget(shmKey, shm_size, shmFlag)) < 0)
+	{
+		std::cerr << "Init: Failed to initialize shared memory (" << shmId << ")" << std::endl; 
+		exit(1);
+	}	
 	
 	//initialize offsets
 	for(i=0; i< process_count; i++){
-		offsets[i] = total_rows/process_count;
+		int size = total_rows/process_count;
+		segments.at(i).start = size*i;
+		segments.at(i).end = size*i + size;
+		segments.at(i).shm_start = i*40;
+		segments.at(i).shm_end = i*40 + 40;
 		//if at the last process, check to see if the division is not even
 		if(i==process_count-1)
-			offsets[i] += total_rows%process_count;
+			segments.at(i).end += total_rows%process_count;
 	}
 	
 	//create the vector that will hold all the results from each vector before combining them
@@ -213,7 +241,6 @@ int main (int argc, char** argv){
 
 	//create start and end chrono time points
 	std::chrono::time_point<std::chrono::system_clock> start, end;
-	std::cout << process_count << std::endl;
 	
 	//print header.
 	std::cout << "===========" << std::endl;
@@ -221,7 +248,7 @@ int main (int argc, char** argv){
 	std::cout << "===========" << std::endl;
 	
 	//loop through the 4 different sizes of vectors
-	for(i=0; i<sizes_count; i++){
+	for(i=0; i<1; i++){
 		//let the first process print the results.
 		std::cout << "-----------------" << std::endl;
 		std::cout << "Search: "<< sizes[i] << "-D" << std::endl;
@@ -229,7 +256,7 @@ int main (int argc, char** argv){
 
 		//get an object of the process spawner class.
 		scottgs::Splitter splitter;
-		for (int p = 0; p < 2 ; ++p)
+		for (int p = 0; p < process_count ; ++p)
 		{
 			pid_t pid = splitter.spawn();
 			if (pid < 0)
@@ -242,10 +269,17 @@ int main (int argc, char** argv){
 			}
 			if (0 == pid) // Child
 			{
-				
+				/* Attach shared memory */
+				if((shm = (float *)shmat(shmId, NULL, 0)) == (float *) -1)
+				{ 
+					std::cerr << "Init: Failed to attach shared memory (" << shmId << ")" << std::endl; 
+					exit(1);
+				}else{
+					std::cout << "Child Process ATTACHED TO MEMORY And my number is : " << p << std::endl;
+				}
 				
 				std::cout << "Child Process (" << pid << ")" << "And my number is : " << p << std::endl;
-				
+				std::cout << "Child Process (" << pid << ")" << "And my offset is : " << segments.at(p).start << "and : " << segments.at(p).end << std::endl;
 				//loop through the (30 vectors specified in the description)
 				for(j=0; j<1; j++){	
 					
@@ -261,10 +295,12 @@ int main (int argc, char** argv){
 					std::cout << scottgs::vectorToCSV(copy) << std::endl;
 					
 					//perform the test(delete this as it is not needed)
-					//final_results = circularSubvectorMatch(sizes[i], copy, points, num_max, p, process_count);
+					//pas the size of the search vector, the auto generated vector, the vectors from the file,
+					//the number of top results to return, and the offset from which to search.
+					final_results = circularSubvectorMatch(sizes[i], copy, points, num_max, segments.at(p).start, segments.at(p).end, segments.at(p).shm_start, segments.at(p).shm_end, shm);
 					
 					//print top num_max results
-					//printResults(final_results, num_max);
+					printResults(final_results, num_max);
 					
 					//calculate end time.
 					end = std::chrono::system_clock::now();
@@ -273,13 +309,12 @@ int main (int argc, char** argv){
 				}
 				_exit(0);
 			}
-			else
-			{
-				; // Nothing to do for the parent
-			}
 		}
 		//wait for all children before looping again.
 		splitter.reap_all();
+		
+		//now perform printing and stuff. from shared memory.
+		
 	}
 
 }
