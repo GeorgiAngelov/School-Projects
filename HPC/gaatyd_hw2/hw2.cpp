@@ -78,7 +78,7 @@ std::vector<float> generateRandomVector(unsigned int size)
 	return rv;
 }
 
-bool runTest(const unsigned int vector_size, std::vector<ResultType>* searchVector){
+bool runTest(const unsigned int vector_size, std::vector<ResultType>* searchVector, unsigned int n){
 	float test_array[10][3];
 	switch(vector_size){
 		case 9:
@@ -138,7 +138,7 @@ bool runTest(const unsigned int vector_size, std::vector<ResultType>* searchVect
 		break;
 	}
 	
-	for(int i=0; i<10; i++){
+	for(int i=0; i<n; i++){
 		if(test_array[i][0] != (*searchVector).at(i).x)
 			return false;
 		if(test_array[i][1] != (*searchVector).at(i).y)
@@ -181,7 +181,7 @@ void printResults(float* shm, unsigned int n, unsigned int process_count, unsign
 	}
 	std::cout << "(" << n << " rows)" << std::endl;
 	
-	if(runTest(vector_size, &results)){
+	if(runTest(vector_size, &results, n)){
 		std::cout << " Test SUCCESSFUL with size " << vector_size << std::endl;
 	}else{
 		std::cout << " Test UNSUCCESSFUL with size " << vector_size << std::endl;
@@ -236,7 +236,7 @@ std::vector<ResultType> circularSubvectorMatch(const unsigned int vector_size, s
 			one.dist = dist;
 
 			//Begins min heap process
-			if(results.size() < 10){
+			if(results.size() < n){
 				results.push_back(one);
 			}
 			// Compare it to the max element in the heap 
@@ -307,7 +307,7 @@ int main (int argc, char** argv){
 	std::vector<segment> segments(process_count);
 	
 	//initialize shared memory
-	size_t memory_space = process_count*40;
+	size_t memory_space = process_count*4*num_max;
 	float shm_size = memory_space * sizeof(float);
 	int shmId;
 	// use current time as seed for random generator
@@ -362,7 +362,7 @@ int main (int argc, char** argv){
 		/*copy = generateScottVector(sizes[i]);
 		final_results = circularSubvectorMatch(sizes[i], &copy, &points, num_max, 0, total_rows, 0, 0, NULL, true);
 		copy.clear();
-		if(runTest(sizes[i], &final_results)){
+		if(runTest(sizes[i], &final_results. num_max)){
 			std::cout << "Test was Successful against vector: " << std::endl;
 			std::cout << scottgs::vectorToCSV(generateScottVector(sizes[i])) << std::endl;
 		}else{
