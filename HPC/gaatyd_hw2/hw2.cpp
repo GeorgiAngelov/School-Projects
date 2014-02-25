@@ -78,7 +78,7 @@ std::vector<float> generateRandomVector(unsigned int size)
 	return rv;
 }
 
-bool runTest(const unsigned int vector_size, std::vector<ResultType> searchVector){
+bool runTest(const unsigned int vector_size, std::vector<ResultType>* searchVector){
 	float test_array[10][3];
 	switch(vector_size){
 		case 9:
@@ -139,11 +139,11 @@ bool runTest(const unsigned int vector_size, std::vector<ResultType> searchVecto
 	}
 	
 	for(int i=0; i<10; i++){
-		if(test_array[i][0] != searchVector.at(i).x)
+		if(test_array[i][0] != (*searchVector).at(i).x)
 			return false;
-		if(test_array[i][1] != searchVector.at(i).y)
+		if(test_array[i][1] != (*searchVector).at(i).y)
 			return false;
-		if(test_array[i][2] != searchVector.at(i).offset)
+		if(test_array[i][2] != (*searchVector).at(i).offset)
 			return false;
 	}
 	
@@ -182,7 +182,7 @@ void printResults(float* shm, unsigned int n, unsigned int process_count, unsign
 	}
 	std::cout << "(" << n << " rows)" << std::endl;
 	
-	if(runTest(vector_size, results)){
+	if(runTest(vector_size, &results)){
 		std::cout << " Test SUCCESSFUL with size " << vector_size << std::endl;
 	}else{
 		std::cout << " Test UNSUCCESSFUL with size " << vector_size << std::endl;
@@ -197,9 +197,9 @@ void printResults(float* shm, unsigned int n, unsigned int process_count, unsign
 *	@n - number of top results to return
 *	@all_offest - value used to indicate from where to begin the search.
 */
-std::vector<ResultType> circularSubvectorMatch(const unsigned int vector_size, std::vector<float> searchVector, VectorsMap circularVector, const unsigned int n, unsigned int begin_index, unsigned int end_index, unsigned int shm_start, unsigned int shm_end, float* shm, const bool is_test){
+std::vector<ResultType> circularSubvectorMatch(const unsigned int vector_size, std::vector<float>* searchVector, VectorsMap* circularVector, const unsigned int n, unsigned int begin_index, unsigned int end_index, unsigned int shm_start, unsigned int shm_end, float* shm, const bool is_test){
 	unsigned int i, j, row_index;
-	const unsigned int item_size = circularVector.size();
+	const unsigned int item_size = (*circularVector).size();
 	//vector for the returned top N results;
 	std::vector<ResultType> results;
 	results.reserve(n);
@@ -211,7 +211,7 @@ std::vector<ResultType> circularSubvectorMatch(const unsigned int vector_size, s
 	//iterate over the whole set of vectors parsed from the file.
 	for (row_index=begin_index; row_index < end_index; row_index++) {
 		//get a copy of the the vector at position row_index and remove it
-		tmp = circularVector.at(row_index);
+		tmp = (*circularVector).at(row_index);
 		//get the first and second key and erase them
 		x = tmp.at(0);
 		tmp.erase(tmp.begin());
@@ -225,7 +225,7 @@ std::vector<ResultType> circularSubvectorMatch(const unsigned int vector_size, s
 			dist_tmp = 0;
 			//loop through the vector size(9,11,17,29)
 			for(j=0; j<vector_size; j++){
-				dist_tmp = fabs(searchVector.at(j) - tmp.at((j+i)%360));
+				dist_tmp = fabs((*searchVector).at(j) - tmp.at((j+i)%360));
 				dist += dist_tmp;
 			}
 			
@@ -235,7 +235,7 @@ std::vector<ResultType> circularSubvectorMatch(const unsigned int vector_size, s
 			one.y = y;
 			one.offset = i;
 			one.dist = dist;
-			
+
 			//Begins min heap process
 			if(results.size() < 10){
 				results.push_back(one);
@@ -253,6 +253,7 @@ std::vector<ResultType> circularSubvectorMatch(const unsigned int vector_size, s
 	}
 	//sort to fix the min heap operations
 	std::sort(results.begin(), results.end());
+	results.resize(n);
 	int count = 0;
 	
 	//if we are not running a test, save to memory
@@ -296,6 +297,8 @@ int main (int argc, char** argv){
 			total_rows++;	
 		}
 	}
+	free(line);
+	fclose(fPtr);
 
 	srand(34122);
 	int i,j, process_count=atoi(argv[2]), num_max=atoi(argv[3]), size=0;
@@ -340,10 +343,6 @@ int main (int argc, char** argv){
 			segments.at(i).end += total_rows%process_count;
 	}
 	
-	//create the vector that will hold all the results from each vector before combining them
-	std::vector<std::vector<ResultType>> results;
-	results.reserve(process_count);
-	
 	//create the final results vector
 	//reserve enough space to be able to merge all of our processes' stuff
 	std::vector<ResultType> final_results;
@@ -362,16 +361,18 @@ int main (int argc, char** argv){
 	for(i=0; i<sizes_count; i++){
 	
 		//run the test:
-		copy = generateScottVector(sizes[i]);
-		final_results = circularSubvectorMatch(sizes[i], copy, points, num_max, 0, total_rows, 0, 0, NULL, true);
-		if(runTest(sizes[i], final_results)){
+		/*copy = generateScottVector(sizes[i]);
+		final_results = circularSubvectorMatch(sizes[i], &copy, &points, num_max, 0, total_rows, 0, 0, NULL, true);
+		copy.clear();
+		if(runTest(sizes[i], &final_results)){
 			std::cout << "Test was Successful against vector: " << std::endl;
 			std::cout << scottgs::vectorToCSV(generateScottVector(sizes[i])) << std::endl;
 		}else{
 			std::cout << "Test FAILED against vector: " << std::endl;
 			std::cout << scottgs::vectorToCSV(generateScottVector(sizes[i])) << std::endl;
-			exit(-1);
+			//exit(-1);
 		}
+		final_results.clear();*/
 		
 		//generate 30 random vectors of size size[i]
 		//for(int ii=0; ii< 30; ii++){
@@ -409,8 +410,7 @@ int main (int argc, char** argv){
 				}
 				//loop through the (30 vectors specified in the description)
 				for(j=0; j<1; j++){	
-					
-							
+						
 					//let only process 0 to print this vector.
 					if(p == 0){
 						//print the created vector.
@@ -420,7 +420,7 @@ int main (int argc, char** argv){
 					//perform the test(delete this as it is not needed)
 					//pas the size of the search vector, the auto generated vector, the vectors from the file,
 					//the number of top results to return, and the offset from which to search.
-					circularSubvectorMatch(sizes[i], generated_vectors[j], points, num_max, segments.at(p).start, segments.at(p).end, segments.at(p).shm_start, segments.at(p).shm_end, shm, false);
+					circularSubvectorMatch(sizes[i], &generated_vectors[j], &points, num_max, segments.at(p).start, segments.at(p).end, segments.at(p).shm_start, segments.at(p).shm_end, shm, false);
 				}
 				_exit(0);
 			}
