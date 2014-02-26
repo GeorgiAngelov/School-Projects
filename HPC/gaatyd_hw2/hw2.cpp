@@ -80,6 +80,7 @@ std::vector<float> generateRandomVector(unsigned int size)
 
 bool runTest(const unsigned int vector_size, std::vector<ResultType>* searchVector, unsigned int n){
 	float test_array[10][3];
+	
 	switch(vector_size){
 		case 9:
 			test_array = {
@@ -150,28 +151,83 @@ bool runTest(const unsigned int vector_size, std::vector<ResultType>* searchVect
 	return true;
 }
 
-/**
-*	The function receives the shared memory segment and it gets it's values and prints the top 10 results
-*	The function also receives the number of results that need to be printed.
-* 	The function also receives the number of processes so it knows how to loop.
-*/
-void printResults(float* shm, unsigned int n, unsigned int process_count, unsigned int vector_size){
-	unsigned int i=0;
-	//total entries in the shared memory
-	const unsigned int shm_size = process_count*n*4;
-	ResultType one;
-	std::vector<ResultType> results;
-
-	for(i=0; i<shm_size; i++){
-		one.x = shm[i];
-		one.y = shm[i+1];
-		one.offset = shm[i+2];
-		one.dist = shm[i+3];
-		results.push_back(one);
-		i+=3;
+std::vector<ResultType> generateVectorTest(const unsigned int vector_size){
+	
+	float test_array[10][3];
+	switch(vector_size){
+		case 9:
+			test_array = {
+			{34.4661,68.3391,290},
+			{34.4661,68.3552,140},
+			{34.4664,68.356,140},
+			{34.467,68.3493,20},
+			{34.4664,68.3482,355},
+			{34.4672,68.3638,175},
+			{34.4667,68.3502,25},
+			{34.4675,68.3399,265},
+			{34.4678,68.3574,355},
+			{34.4675,68.3521,25}};
+		break;
+		
+		case 11:
+			test_array =  {
+			{34.4678,68.3346,310},
+			{34.4675,68.3343,310},
+			{34.4672,68.3341,310},
+			{34.467,68.3338,310},
+			{34.4672,68.3343,310},
+			{34.4664,68.351,245},
+			{34.4675,68.3366,215},
+			{34.4678,68.3349,310},  
+			{34.4672,68.3368,215},
+			{34.4661,68.3652,105}};
+		break;
+		
+		case 17:
+			test_array =  {
+			{34.467,68.3624,285},
+			{34.4672,68.3357,155},
+			{34.467,68.3446,155},
+			{34.467,68.3593,75},
+			{34.4659,68.3396,340},
+			{34.4678,68.3571,185},
+			{34.4664,68.3624,325},
+			{34.4678,68.3516,45},
+			{34.4664,68.3471,205},
+			{34.4664,68.3352,10}};
+		break;
+		
+		case 29:
+			test_array = {
+			{34.4667,68.3568,335},
+			{34.4661,68.3441,130},
+			{34.4661,68.3357,145},
+			{34.4664,68.3574,330},
+			{34.4659,68.3435,130},
+			{34.4664,68.3504,60},
+			{34.4664,68.3366,145},
+			{34.4664,68.3374,145},
+			{34.467,68.3385,260},
+			{34.4667,68.3629,10}};
+		break;
 	}
-	std::sort(results.begin(), results.end());
-	results.resize(n);
+	//declare a vector of size 10
+	std::vector<ResultType> vectors;
+	ResultType tmp;
+	for(int i=0; i<10; i++){
+		tmp.x = test_array[i][0];
+		tmp.y = test_array[i][1];
+		tmp.offset = test_array[i][2];
+		tmp.dist = 0;
+		vectors.push_back(tmp);
+	}
+	
+	return vectors;
+}
+
+void printVector(const unsigned int n, std::vector<ResultType> results, int vector_size){
+	ResultType one;
+	int i=0;
 	std::cout << std::setw(10) << "x" << "|" << std::setw(10) << "y" << "|" << std::setw(8) << "offset" << "|" << std::setw(12) << "score" << std::endl;
 	std::cout << "----------+----------+--------+------------" << std::endl;
 	//print the results
@@ -186,6 +242,35 @@ void printResults(float* shm, unsigned int n, unsigned int process_count, unsign
 	}else{
 		std::cout << " Test UNSUCCESSFUL with size " << vector_size << std::endl;
 	}
+}
+
+/**
+*	The function receives the shared memory segment and it gets it's values and prints the top 10 results
+*	The function also receives the number of results that need to be printed.
+* 	The function also receives the number of processes so it knows how to loop.
+*/
+void printResults(float* shm, unsigned int n, unsigned int process_count, unsigned int vector_size){
+	unsigned int i=0;
+	//total entries in the shared memory
+	const unsigned int shm_size = process_count*n*4;
+	ResultType one;
+	std::vector<ResultType> results;
+	
+	//run through the shared memory and insert the values in ResultType
+	//structures and stored them into the results vector.
+	for(i=0; i<shm_size; i++){
+		one.x = shm[i];
+		one.y = shm[i+1];
+		one.offset = shm[i+2];
+		one.dist = shm[i+3];
+		results.push_back(one);
+		i+=3;
+	}
+	//sort and resize the results to keep only the top 10
+	std::sort(results.begin(), results.end());
+	results.resize(n);
+	//print the actual results
+	printVector(n, results, vector_size);
 }
 
 /**
@@ -371,23 +456,27 @@ int main (int argc, char** argv){
 	
 	//loop through the 4 different sizes of vectors
 	for(i=0; i<sizes_count; i++){
-	
+		std::cout << "\n\n==============TEST BEGIN==================\n" << std::endl;
 		//run the test:
-		/*copy = generateScottVector(sizes[i]);
+		copy = generateScottVector(sizes[i]);
 		final_results = circularSubvectorMatch(sizes[i], &copy, &points, num_max, 0, total_rows, 0, 0, NULL, true);
 		copy.clear();
-		//PRINT WHAT RESULT IS EXPECTED
-		//PRINT WHAT RESULT IS RECEIVED
-		if(runTest(sizes[i], &final_results. num_max)){
-			std::cout << "Test was Successful against vector: " << std::endl;
-			std::cout << scottgs::vectorToCSV(generateScottVector(sizes[i])) << std::endl;
+		//run the test
+		if(runTest(sizes[i], &final_results, num_max)){
+			std::cout << "Test was SUCCESSFUL against vector: \n" << std::endl;
+			std::cout << scottgs::vectorToCSV(generateScottVector(sizes[i])) << "\n\n" << std::endl;
 		}else{
-			std::cout << "Test FAILED against vector: " << std::endl;
-			std::cout << scottgs::vectorToCSV(generateScottVector(sizes[i])) << std::endl;
+			std::cout << "Test FAILED against vector: \n" << std::endl;
+			std::cout << scottgs::vectorToCSV(generateScottVector(sizes[i])) << "\n\n" << std::endl;
 			//exit(-1);
 		}
-		final_results.clear();*/
+		std::cout << "Expected vector results" << std::endl;
+		printVector(num_max, final_results, sizes[i]);
+		std::cout << "\n\nGenerated vector results" << std::endl;
+		printVector(num_max, generateVectorTest(sizes[i]), sizes[i]);
 		
+		final_results.clear();
+		std::cout << "\n\n==============TEST END==================\n\n\n" << std::endl;
 		//generate 30 random vectors of size size[i]
 		//for(int ii=0; ii< 30; ii++){
 		//	generated_vectors.at(ii) = generateRandomVector(sizes[ii]);
@@ -439,7 +528,7 @@ int main (int argc, char** argv){
 					_exit(0);
 				}//end if pid==0
 			}
-			//wait for all children before looping again.
+			//wait for all children before looping again..
 			splitter.reap_all();
 			//calculate end time.
 			end = std::chrono::system_clock::now();
