@@ -2,7 +2,7 @@
 *	Name: Georgi Angelov
 *	ID: 14120841
 *	HW#: Homework 2
-*	Date: 2/21/2014
+*	Date: 2/26/2014
 */
 
 #include <iostream>
@@ -68,6 +68,9 @@ struct ResultType {
 	}
 };
 
+/**
+*	Function to generate a random vector stored in a vector of floats format.
+*/
 std::vector<float> generateRandomVector(unsigned int size)
 {
 	// Again, there is a better way to do this using STL generator or STL bind
@@ -78,6 +81,9 @@ std::vector<float> generateRandomVector(unsigned int size)
 	return rv;
 }
 
+/**
+*	A functoin that performs a test of a given results set against another result test.
+*/
 bool runTest(const unsigned int vector_size, std::vector<ResultType>* searchVector, unsigned int n){
 	float test_array[10][3];
 	
@@ -236,12 +242,6 @@ void printVector(const unsigned int n, std::vector<ResultType> results, int vect
 		std::cout << std::setw(10) << one.x << "|" << std::setw(10) << one.y << "|" << std::setw(8) << one.offset << "|" << std::setw(12) << one.dist << std::endl;
 	}
 	std::cout << "(" << n << " rows)" << std::endl;
-	
-	if(runTest(vector_size, &results, n)){
-		std::cout << " Test SUCCESSFUL with size " << vector_size << std::endl;
-	}else{
-		std::cout << " Test UNSUCCESSFUL with size " << vector_size << std::endl;
-	}
 }
 
 /**
@@ -353,15 +353,6 @@ std::vector<ResultType> circularSubvectorMatch(const unsigned int vector_size, s
 	}
 	return results;
 }
-//FOR PAPER
-/*
-	Introduction
-	algorithm
-	data structure
-	graphs and explanation
-	conclusion
-*/
-
 
 int main (int argc, char** argv){
 	if(argc < 4){
@@ -478,15 +469,15 @@ int main (int argc, char** argv){
 		final_results.clear();
 		std::cout << "\n\n==============TEST END==================\n\n\n" << std::endl;
 		//generate 30 random vectors of size size[i]
-		//for(int ii=0; ii< 30; ii++){
-		//	generated_vectors.at(ii) = generateRandomVector(sizes[ii]);
-		//}
+		for(int ii=0; ii< 30; ii++){
+			generated_vectors.at(ii) = generateRandomVector(sizes[i]);
+		}
 		
 		//for testing purposes I am only doing 1.
-		generated_vectors.at(0).reserve(sizes[i]);
-		generated_vectors.at(0) = generateScottVector(sizes[i]);
+		//generated_vectors.at(0).reserve(sizes[i]);
+		//generated_vectors.at(0) = generateScottVector(sizes[i]);
 		//loop through the (30 vectors specified in the description)
-		for(j=0; j<1; j++){
+		for(j=0; j<30; j++){
 			//let the first process print the results.
 			std::cout << "-----------------" << std::endl;
 			std::cout << "Search: "<< sizes[i] << "-D" << std::endl;
@@ -536,10 +527,11 @@ int main (int argc, char** argv){
 			//print top num_max results
 			printResults(shm, num_max, process_count, sizes[i]);
 			//print end time		
-			std::chrono::duration<double> elapsed_seconds = end-start;
-			std::cout << "\nTime: " << elapsed_seconds.count() << " seconds" << std::endl;
+			std::chrono::duration<double, std::milli> elapsed_seconds = end-start;
+			std::cout << "\nTime: " << elapsed_seconds.count() << " milliseconds" << std::endl;
 		}
 	}
+	//detach the memory
 	shmdt(shm);
 	//delete shared memory after we are done with it.
 	shmctl(shmId, IPC_RMID, NULL);
