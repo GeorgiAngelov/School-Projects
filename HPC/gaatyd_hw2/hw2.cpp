@@ -234,14 +234,15 @@ std::vector<ResultType> generateVectorTest(const unsigned int vector_size){
 void printVector(const unsigned int n, std::vector<ResultType> results, int vector_size){
 	ResultType one;
 	int i=0;
-	std::cout << std::setw(10) << "x" << "|" << std::setw(10) << "y" << "|" << std::setw(8) << "offset" << "|" << std::setw(12) << "score" << std::endl;
-	std::cout << "----------+----------+--------+------------" << std::endl;
+	std::cout << "Results:\n" << std::endl;
+	std::cout << std::setw(13) << " x" << "|" << std::setw(10) << "y" << "|" << std::setw(8) << "offset" << "|" << std::setw(12) << "score" << std::endl;
+	std::cout << "-------------+----------+--------+------------" << std::endl;
 	//print the results
 	for(i=0; i<n; i++){
 		one = results.at(i);
-		std::cout << std::setw(10) << one.x << "|" << std::setw(10) << one.y << "|" << std::setw(8) << one.offset << "|" << std::setw(12) << one.dist << std::endl;
+		std::cout << i+1 << "." << std::setw(10) << one.x << "|" << std::setw(10) << one.y << "|" << std::setw(8) << one.offset << "|" << std::setw(12) << one.dist << std::endl;
 	}
-	std::cout << "(" << n << " rows)" << std::endl;
+	std::cout << "\n(" << n << " rows)" << std::endl;
 }
 
 /**
@@ -314,7 +315,6 @@ std::vector<ResultType> circularSubvectorMatch(const unsigned int vector_size, s
 			}
 			
 			//put the result into the structure
-			
 			one.x = x;
 			one.y = y;
 			one.offset = i;
@@ -439,6 +439,7 @@ int main (int argc, char** argv){
 
 	//create start and end chrono time points
 	std::chrono::time_point<std::chrono::system_clock> start, end;
+	std::map<int, double> times;
 	
 	//print header.
 	std::cout << "===========" << std::endl;
@@ -524,13 +525,23 @@ int main (int argc, char** argv){
 			//calculate end time.
 			end = std::chrono::system_clock::now();
 			//now perform printing and stuff. from shared memory.		
-			//print top num_max results
-			printResults(shm, num_max, process_count, sizes[i]);
 			//print end time		
 			std::chrono::duration<double, std::milli> elapsed_seconds = end-start;
-			std::cout << "\nTime: " << elapsed_seconds.count() << " milliseconds" << std::endl;
-		}
+			std::cout << "\nTime: " << elapsed_seconds.count() << " milliseconds\n" << std::endl;
+			//keep a record of the time
+			times[sizes[i]] += elapsed_seconds.count();
+			std::cout << times[sizes[i]] << std::endl;
+			//print top num_max results
+			printResults(shm, num_max, process_count, sizes[i]);
+		}//end 30 vectors loop
+	}//end vector_size loop
+	std::cout << "\nSize" << "|" << "Average Time" << std::endl;
+	std::cout << "-----------------" << std::endl;
+	for(i=0; i<4; i++){
+		std::cout << std::setw(2) << sizes[i] << std::setw(3) << "|" << times[sizes[i]]/30 << " milliseconds" << std::endl;
 	}
+	
+
 	//detach the memory
 	shmdt(shm);
 	//delete shared memory after we are done with it.
