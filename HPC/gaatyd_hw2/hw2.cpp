@@ -234,15 +234,15 @@ std::vector<ResultType> generateVectorTest(const unsigned int vector_size){
 void printVector(const unsigned int n, std::vector<ResultType> results, int vector_size){
 	ResultType one;
 	int i=0;
-	std::cout << "Results:\n" << std::endl;
-	std::cout << std::setw(13) << " x" << "|" << std::setw(10) << "y" << "|" << std::setw(8) << "offset" << "|" << std::setw(12) << "score" << std::endl;
-	std::cout << "-------------+----------+--------+------------" << std::endl;
+	std::cout << "Results:" << std::endl;
+	//std::cout << std::setw(13) << " x" << "|" << std::setw(10) << "y" << "|" << std::setw(8) << "offset" << "|" << std::setw(12) << "score" << std::endl;
+	//std::cout << "-------------+----------+--------+------------" << std::endl;
 	//print the results
 	for(i=0; i<n; i++){
 		one = results.at(i);
-		std::cout << i+1 << "." << std::setw(10) << one.x << "|" << std::setw(10) << one.y << "|" << std::setw(8) << one.offset << "|" << std::setw(12) << one.dist << std::endl;
+		//std::cout << i+1 << "." << std::setw(10) << one.x << "|" << std::setw(10) << one.y << "|" << std::setw(8) << one.offset << "|" << std::setw(12) << one.dist << std::endl;
+		std::cout << i+1 << ".   " << one.x << ":" << one.y << ":" << one.offset << std::endl;
 	}
-	std::cout << "\n(" << n << " rows)" << std::endl;
 }
 
 /**
@@ -480,7 +480,7 @@ int main (int argc, char** argv){
 		//loop through the (30 vectors specified in the description)
 		for(j=0; j<30; j++){
 			//let the first process print the results.
-			std::cout << "-----------------" << std::endl;
+			std::cout << "\n-----------------" << std::endl;
 			std::cout << "Search: "<< sizes[i] << "-D" << std::endl;
 			std::cout << "-----------------" << std::endl;
 			//get an object of the process spawner class..
@@ -507,6 +507,7 @@ int main (int argc, char** argv){
 		
 					//let only process 0 to print this vector.
 					if(p == 0){
+						std::cout << "\nSearch Vector: " << std::endl;
 						//print the created vector.
 						std::cout << scottgs::vectorToCSV(generated_vectors[j]) << std::endl;
 					}
@@ -530,17 +531,19 @@ int main (int argc, char** argv){
 			std::cout << "\nTime: " << elapsed_seconds.count() << " milliseconds\n" << std::endl;
 			//keep a record of the time
 			times[sizes[i]] += elapsed_seconds.count();
-			std::cout << times[sizes[i]] << std::endl;
+
 			//print top num_max results
 			printResults(shm, num_max, process_count, sizes[i]);
 		}//end 30 vectors loop
 	}//end vector_size loop
-	std::cout << "\nSize" << "|" << "Average Time" << std::endl;
+	std::cout << "\n-----------------" << std::endl;
+	std::cout << "Final Results:" << std::endl;
+	std::cout << "-----------------\n" << std::endl;
+	std::cout << "Size" << "|" << "Average Time" << std::endl;
 	std::cout << "-----------------" << std::endl;
 	for(i=0; i<4; i++){
 		std::cout << std::setw(2) << sizes[i] << std::setw(3) << "|" << times[sizes[i]]/30 << " milliseconds" << std::endl;
 	}
-	
 
 	//detach the memory
 	shmdt(shm);
