@@ -441,13 +441,10 @@ int main (int argc, char** argv){
 	std::chrono::time_point<std::chrono::system_clock> start, end;
 	std::map<int, double> times;
 	
-	//print header.
-	std::cout << "===========" << std::endl;
-	std::cout << " Put Data Set Count Here " << std::endl;
-	std::cout << "===========" << std::endl;
-	
 	//loop through the 4 different sizes of vectors
 	for(i=0; i<sizes_count; i++){
+		
+		/*
 		std::cout << "\n\n==============TEST BEGIN==================\n" << std::endl;
 		//run the test:
 		copy = generateScottVector(sizes[i]);
@@ -469,6 +466,8 @@ int main (int argc, char** argv){
 		
 		final_results.clear();
 		std::cout << "\n\n==============TEST END==================\n\n\n" << std::endl;
+		*/
+		
 		//generate 30 random vectors of size size[i]
 		for(int ii=0; ii< 30; ii++){
 			generated_vectors.at(ii) = generateRandomVector(sizes[i]);
@@ -480,9 +479,9 @@ int main (int argc, char** argv){
 		//loop through the (30 vectors specified in the description)
 		for(j=0; j<30; j++){
 			//let the first process print the results.
-			std::cout << "\n-----------------" << std::endl;
+			/*std::cout << "\n-----------------" << std::endl;
 			std::cout << "Search: "<< sizes[i] << "-D" << std::endl;
-			std::cout << "-----------------" << std::endl;
+			std::cout << "-----------------" << std::endl;*/
 			//get an object of the process spawner class..
 			start = std::chrono::system_clock::now();
 			scottgs::Splitter splitter;
@@ -506,11 +505,11 @@ int main (int argc, char** argv){
 					}
 		
 					//let only process 0 to print this vector.
-					if(p == 0){
+					/*if(p == 0){
 						std::cout << "\nSearch Vector: " << std::endl;
 						//print the created vector.
 						std::cout << scottgs::vectorToCSV(generated_vectors[j]) << std::endl;
-					}
+					}*/
 
 					//perform the test(delete this as it is not needed)
 					//pas the size of the search vector, the auto generated vector, the vectors from the file,
@@ -528,12 +527,12 @@ int main (int argc, char** argv){
 			//now perform printing and stuff. from shared memory.		
 			//print end time		
 			std::chrono::duration<double, std::milli> elapsed_seconds = end-start;
-			std::cout << "\nTime: " << elapsed_seconds.count() << " milliseconds\n" << std::endl;
+			//std::cout << "\nTime: " << elapsed_seconds.count() << " milliseconds\n" << std::endl;
 			//keep a record of the time
 			times[sizes[i]] += elapsed_seconds.count();
-
+	
 			//print top num_max results
-			printResults(shm, num_max, process_count, sizes[i]);
+			//printResults(shm, num_max, process_count, sizes[i]);
 		}//end 30 vectors loop
 	}//end vector_size loop
 	std::cout << "\n-----------------" << std::endl;
