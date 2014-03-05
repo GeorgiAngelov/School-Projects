@@ -477,7 +477,7 @@ int main (int argc, char** argv){
 		//generated_vectors.at(0).reserve(sizes[i]);
 		//generated_vectors.at(0) = generateScottVector(sizes[i]);
 		//loop through the (30 vectors specified in the description)
-		for(j=0; j<30; j++){
+		for(j=0; j<1; j++){
 			//let the first process print the results.
 			/*std::cout << "\n-----------------" << std::endl;
 			std::cout << "Search: "<< sizes[i] << "-D" << std::endl;
@@ -540,9 +540,7 @@ int main (int argc, char** argv){
 	std::cout << "-----------------\n" << std::endl;
 	std::cout << "Size" << "|" << "Average Time" << std::endl;
 	std::cout << "-----------------" << std::endl;
-	for(i=0; i<4; i++){
-		std::cout << std::setw(2) << sizes[i] << std::setw(3) << "|" << times[sizes[i]]/30 << " milliseconds" << std::endl;
-	}
+	std::cout << times[sizes[0]]/1 << " " << times[sizes[1]]/1 << " " << times[sizes[2]]/1 << " " << times[sizes[3]]/1 << std::endl;
 
 	//detach the memory
 	shmdt(shm);
