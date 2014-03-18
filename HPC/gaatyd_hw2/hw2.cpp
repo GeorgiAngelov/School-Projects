@@ -238,7 +238,7 @@ void printVector(const unsigned int n, std::vector<ResultType> results, int vect
 	//std::cout << std::setw(13) << " x" << "|" << std::setw(10) << "y" << "|" << std::setw(8) << "offset" << "|" << std::setw(12) << "score" << std::endl;
 	//std::cout << "-------------+----------+--------+------------" << std::endl;
 	//print the results
-	for(i=0; i<n; i++){
+	for(i=0; i<10; i++){
 		one = results.at(i);
 		//std::cout << i+1 << "." << std::setw(10) << one.x << "|" << std::setw(10) << one.y << "|" << std::setw(8) << one.offset << "|" << std::setw(12) << one.dist << std::endl;
 		std::cout << i+1 << ".   " << one.x << ":" << one.y << ":" << one.offset << std::endl;
@@ -444,7 +444,7 @@ int main (int argc, char** argv){
 	//loop through the 4 different sizes of vectors
 	for(i=0; i<sizes_count; i++){
 		
-		/*
+		
 		std::cout << "\n\n==============TEST BEGIN==================\n" << std::endl;
 		//run the test:
 		copy = generateScottVector(sizes[i]);
@@ -466,7 +466,7 @@ int main (int argc, char** argv){
 		
 		final_results.clear();
 		std::cout << "\n\n==============TEST END==================\n\n\n" << std::endl;
-		*/
+		
 		
 		//generate 30 random vectors of size size[i]
 		for(int ii=0; ii< 30; ii++){
@@ -477,11 +477,11 @@ int main (int argc, char** argv){
 		//generated_vectors.at(0).reserve(sizes[i]);
 		//generated_vectors.at(0) = generateScottVector(sizes[i]);
 		//loop through the (30 vectors specified in the description)
-		for(j=0; j<1; j++){
+		for(j=0; j<30; j++){
 			//let the first process print the results.
-			/*std::cout << "\n-----------------" << std::endl;
+			std::cout << "\n-----------------" << std::endl;
 			std::cout << "Search: "<< sizes[i] << "-D" << std::endl;
-			std::cout << "-----------------" << std::endl;*/
+			std::cout << "-----------------" << std::endl;
 			//get an object of the process spawner class..
 			start = std::chrono::system_clock::now();
 			scottgs::Splitter splitter;
@@ -505,11 +505,11 @@ int main (int argc, char** argv){
 					}
 		
 					//let only process 0 to print this vector.
-					/*if(p == 0){
+					if(p == 0){
 						std::cout << "\nSearch Vector: " << std::endl;
 						//print the created vector.
 						std::cout << scottgs::vectorToCSV(generated_vectors[j]) << std::endl;
-					}*/
+					}
 
 					//perform the test(delete this as it is not needed)
 					//pas the size of the search vector, the auto generated vector, the vectors from the file,
@@ -532,7 +532,7 @@ int main (int argc, char** argv){
 			times[sizes[i]] += elapsed_seconds.count();
 	
 			//print top num_max results
-			//printResults(shm, num_max, process_count, sizes[i]);
+			printResults(shm, num_max, process_count, sizes[i]);
 		}//end 30 vectors loop
 	}//end vector_size loop
 	std::cout << "\n-----------------" << std::endl;

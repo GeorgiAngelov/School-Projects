@@ -42,12 +42,6 @@ scottgs::FloatMatrix scottgs::MatrixMultiply::operator()(const scottgs::FloatMat
 	const unsigned int m2_num_row = rhs.size1(); //# of row of matrix 2
 	const unsigned int m2_num_col = rhs.size2(); //# of column of matrix 2
 	
-	//block size calculation
-	//2 * (blockSize)^2 * 4 = 32768 (L1 cache)
-	//SQRT(32768/8) = blockSize = 64
-	
-	const int block_size = 64;
-	
 	//get a reference of the matrix's first element ( this will be a pointer to the first element )
 	const float *m1 = &lhs(0,0);
 	const float *m2 = &rhs(0,0);
@@ -63,12 +57,12 @@ scottgs::FloatMatrix scottgs::MatrixMultiply::operator()(const scottgs::FloatMat
 			transposed[j*m2_num_row + i] = m2[i*m2_num_col + j];
 		}
 	}
-	//#pragma omp parallel for
+
+	#pragma omp parallel for schedule(dynamic, 4)
 	for (i = 0; i < m1_num_row; ++i){
 		const float* m1_row = m1 + i*m1_num_col;
 		float* const r_row = r + i*m2_num_col;
 		//loop through each column of matrix 2
-		//#pragma omp parallel for
 		for (j = 0; j < m2_num_col; ++j){
 			const float* m2_col = transposed + j*m1_num_col; 
 			temp_sum = 0;
@@ -79,20 +73,6 @@ scottgs::FloatMatrix scottgs::MatrixMultiply::operator()(const scottgs::FloatMat
 			r_row[j] = temp_sum;
 		}
 	}
-	/*	
-	for (i=0; i<Nu; i++){
-		const double* const Arow = A + i*Nu;
-		double* const Crow = C + i*Nu;
-		#pragma omp parallel for
-		for (j=0; j<Nu; j++){
-			const double* const Bcol = B + j*Nu;
-			double sum = 0.0;
-			for(k=0;k<Nu ;k++){
-			  sum += Arow[k] * Bcol[k]; //C(i,j)=sum(over k) A(i,k)*B(k,j)
-			}
-			Crow[j] = sum;
-		  }
-		}*/
 	return result;
 }
 

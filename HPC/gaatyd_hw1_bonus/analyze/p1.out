@@ -1,0 +1,28 @@
+Running Timing Analysis
+-----------------------
+------------------------------------------------------------------
+1 iterations of matrix multiplication (functor) ran using (400,360)*(360,240) = (400,240)
+      :Method:Average Time (s):approximate ops:computed elements
+Data  Point:f:0.054723:34560640:96000
+------------------------------------------------------------------
+1 iterations of matrix multiplication (functor) ran using (800,720)*(720,800) = (800,800)
+      :Method:Average Time (s):approximate ops:computed elements
+Data  Point:f:0.698132:460801600:640000
+------------------------------------------------------------------
+1 iterations of matrix multiplication (functor) ran using (1600,1000)*(1000,1600) = (1600,1600)
+      :Method:Average Time (s):approximate ops:computed elements
+Data  Point:f:4.12592:2560003200:2560000
+------------------------------------------------------------------
+1 iterations of matrix multiplication (functor) ran using (1600,2000)*(2000,1600) = (1600,1600)
+      :Method:Average Time (s):approximate ops:computed elements
+Data  Point:f:8.76191:5120003200:2560000
+------------------------------------------------------------------
+1 iterations of matrix multiplication (functor) ran using (3200,2000)*(2000,3200) = (3200,3200)
+      :Method:Average Time (s):approximate ops:computed elements
+Data  Point:f:35.0196:20480006400:10240000
+------------------------------------------------------------------
+1 iterations of matrix multiplication (functor) ran using (3200,4000)*(4000,3200) = (3200,3200)
+      :Method:Average Time (s):approximate ops:computed elements
+Data  Point:f:70.742:40960006400:10240000
+Timing Analysis Completed
+=========================

@@ -1,5 +1,5 @@
 
-MY_FLAGS= -fopenmp -O4 -funroll-loops -ffast-math -march=native -mfpmath=sse
+MY_FLAGS= -fopenmp -DNDEBUG -DNBOOST_DEBUG -O4 -funroll-loops -ffast-math -march=native -mfpmath=sse
 
 # Standard all target
 all: hw1

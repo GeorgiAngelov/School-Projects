@@ -1,12 +1,12 @@
 # set this to what I want
-OTHER_FLAGS=-std=c++0x -fopenmp -O4 -funroll-loops -ffast-math -march=native -mfpmath=sse -DNDEBUG -DNBOOST_DEBUG
+OTHER_FLAGS=-std=c++0x
 
 # Standard all target
 all: hw1_analyze
 
 # HW 1 Analysis Code
 hw1_analyze: hw1_analyze.o ../src/MatrixMultiply.o
-	g++ ${OTHER_FLAGS} -o hw1_analyze hw1_analyze.o ../src/MatrixMultiply.o
+	g++ -o hw1_analyze hw1_analyze.o ../src/MatrixMultiply.o
 
 hw1_analyze.o:	hw1_analyze.cpp 
 	g++ ${OTHER_FLAGS} -Wall -c hw1_analyze.cpp
