@@ -58,15 +58,25 @@ void* matrix_thread_row(void *t){
 	pthread_t tid = pthread_self();
 	
 	//print the thread is and the row that it is going to work on
-	std::cout << "Created worker thread %u for row %d\n" << std::cout << (unsigned int)tid << i;
+	std::cout << "Created worker thread " << (unsigned int)tid << " for row " << i << std::endl;
 	float temp_sum = 0;
-	//inner loop runs from 0 to number of columns in matrix m2
-	for(j=0; j < m2->col; j++){
-		temp_sum = 0;
-		for(k=0; k< m1->col; k++){
-			temp_sum = temp_sum + m1->matrix[i*m1->col + k] * m2->matrix[k*m2->col + j];
+	unsigned count = 0;
+	unsigned int row = count*thread_count + i;
+	count++;
+	//let the thread loop through the row's it's supposed to run through
+	while(row < m1->row){
+		std::cout << " I am thread #" << i << "Working on row " << row << std::endl;
+		//inner loop runs from 0 to number of columns in matrix m2
+		for(j=0; j < m2->col; j++){
+			temp_sum = 0;
+			for(k=0; k< m1->col; k++){
+				temp_sum = temp_sum + m1->matrix[row*m1->col + k] * m2->matrix[k*m2->col + j];
+			}
+			result[row*m2->col + j] = temp_sum;
 		}
-		result[i*m2->col + j] = temp_sum;
+		//find the row that the thread is working on
+		row = count*thread_count + i;
+		count++;
 	}
 	
 	//complete the thread
@@ -110,6 +120,7 @@ scottgs::FloatMatrix scottgs::MatrixMultiply::operator()(const scottgs::FloatMat
 	//this int pointer(int array) will hold the number for each index A[0] = 0, A[1] = 1
 	//and so fort just so we can pass it by address to the threading function
 	int* rows = (int*) malloc(sizeof(int)*m1->row);
+	if(rows == NULL) exit(-1);
 	//variable used to see if the thread was created
 	int created = 0;
 	//get number of cores on the current system
@@ -117,26 +128,55 @@ scottgs::FloatMatrix scottgs::MatrixMultiply::operator()(const scottgs::FloatMat
 	//if the requested number of threads is larger than the max number of cores
 	//then only use max cores.
 	thread_count = NUM_THREADS;
+	//create a function pointer so we can easily change the different partitoin methods
+	void* (*method_func)(void*);
+	
+	//PARTITION_METHOD is a global variable that passed throuugh the Makefile.
+	switch(PARTITION_METHOD){
+		case 0:
+			method_func = &matrix_thread_row;
+		break;
+		case 1:
+			//method_func = &matrix_thread_block;
+		break;
+		case 2:
+			//method_func = &matrix_thread_cell;
+		break;
+	}
 	if(numCPU < NUM_THREADS) 
 		thread_count = numCPU;
-		
+	
+	//Spawn all the threads
 	for (i = 0; i < thread_count; ++i){
 		//allocate memory inside the threads array for each thread and cast the malloc
 		threads[i] = (pthread_t*)malloc(sizeof(pthread_t));
-
 		//insert the row number for this thread
 		rows[i] = i;
-
 		//create and execute the thread, pass it the thread pointer, NULL, the function to execute,
 		//and a the address of the row number but cast it as void pointer as that is what the function expect
-		created = pthread_create(threads[i], NULL, matrix_thread_row, (void*)&rows[i]);
-
+		created = pthread_create(threads[i], NULL, method_func, (void*)&rows[i]);
 		//if the value is negative then we have an error creating the thread
 		if(created < 0){
 			std::cout << "Thread failed to create\n";
-		}
+		} 
 	}
 	
+	//loop through the number of threads and join them(waiting for them to finish their work)
+	for(i=0; i<thread_count; i++){
+		//join the threads back one by one
+		pthread_join(*threads[i],NULL);
+	}
+	
+	//NOT WORKING - BAD FREE OR SOMETHING.
+	/*
+	for(i=0; i<thread_count; i++){
+		//free the thread's structure
+		free(threads[i]);
+	}*/
+	
+	//free the threads structure
+	//free(rows);
+	//free(threads);
 	return return_result;
 }
 
