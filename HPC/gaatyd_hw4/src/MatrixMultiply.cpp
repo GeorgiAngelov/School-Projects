@@ -21,15 +21,18 @@ typedef struct{
 	const float *matrix;
 }mat_struct;
 
-//define 3 pointers to structure type matrix
-//A and B are the matrices read in
-//C is the matrix of multiplying AxB
-mat_struct *m1;
-mat_struct *m2;
-
-//array for the result of the matrix multiplication
-float *result;
-unsigned int thread_count;
+//The container struct
+//holds the vars that we will
+//be passed to the functions
+typedef struct{
+	mat_struct *m1;
+	mat_struct *m2;
+	unsigned int i;
+	unsigned int start_block;
+	unsigned int end_block;
+	float *result;
+	unsigned int thread_count;
+}container_struct;
 
 scottgs::MatrixMultiply::MatrixMultiply() 
 {
@@ -42,40 +45,39 @@ scottgs::MatrixMultiply::~MatrixMultiply()
 }
 
 /**
-*	The function is used for the threads to compute
-*	the product for an individual ROW of matrix C
-*	The row number for each thread is passed using void* t.
-*	The function also prints the thread id.
+*	The function is using a thread to compute the 
+*	dot product of two matrices with a block of rows for each thread.
+*	The void* t is actually a container_struct pointer containing the information for the thread,
+*	Such as the dot product matrix, matrix1 and matrix2.
 */
-void* matrix_thread_row(void *t){
-	//cast the pointer as an int pointer
-	//and dereference it to get the value passed.
-	//THIS IS THE CURRENT ROW FOR THE THREAD!
-	unsigned int i = *((unsigned int*)t);
+void* matrix_thread_block(void *t){
+	container_struct* container = (container_struct*)t;
+	unsigned int i=container->i;
 	unsigned int j=0,k=0;
 	
 	//pthread_t variable to print the id of the thread
 	pthread_t tid = pthread_self();
 	
 	//print the thread is and the row that it is going to work on
-	std::cout << "Created worker thread " << (unsigned int)tid << " for row " << i << std::endl;
+	std::cout << "Created worker thread " << (unsigned int)tid << " for row " << container->i << std::endl;
 	float temp_sum = 0;
 	unsigned count = 0;
-	unsigned int row = count*thread_count + i;
+	unsigned int row = count*container->thread_count + i;
 	count++;
 	//let the thread loop through the row's it's supposed to run through
-	while(row < m1->row){
-		std::cout << " I am thread #" << i << "Working on row " << row << std::endl;
+	for(row=container->start_block; row < container->end_block; row++){
 		//inner loop runs from 0 to number of columns in matrix m2
-		for(j=0; j < m2->col; j++){
+		for(j=0; j < container->m2->col; j++){
 			temp_sum = 0;
-			for(k=0; k< m1->col; k++){
-				temp_sum = temp_sum + m1->matrix[row*m1->col + k] * m2->matrix[k*m2->col + j];
+			for(k=0; k< container->m1->col; k++){
+				temp_sum = temp_sum + 
+				container->m1->matrix[row*container->m1->col + k] * 
+				container->m2->matrix[k*container->m2->col + j];
 			}
-			result[row*m2->col + j] = temp_sum;
+			container->result[row*container->m2->col + j] = temp_sum;
 		}
 		//find the row that the thread is working on
-		row = count*thread_count + i;
+		row = count*container->thread_count + i;
 		count++;
 	}
 	
@@ -83,15 +85,55 @@ void* matrix_thread_row(void *t){
 	pthread_exit(NULL);
 }
 
+/**
+*	The function is using a thread to compute the 
+*	dot product of two matrices with a step of total threads for each thread.
+*	The void* t is actually a container_struct pointer containing the information for the thread,
+*	Such as the dot product matrix, matrix1 and matrix2.
+*/
+void* matrix_thread_row(void *t){
+	container_struct* container = (container_struct*)t;
+	unsigned int i=container->i;
+	unsigned int j=0,k=0;
+	
+	//pthread_t variable to print the id of the thread
+	pthread_t tid = pthread_self();
+	
+	//print the thread is and the row that it is going to work on
+	std::cout << "Created worker thread " << (unsigned int)tid << " for row " << container->i << std::endl;
+	float temp_sum = 0;
+	unsigned count = 0;
+	unsigned int row = count*container->thread_count + i;
+	count++;
+	//let the thread loop through the row's it's supposed to run through
+	while(row < container->m1->row){
+		//inner loop runs from 0 to number of columns in matrix m2
+		for(j=0; j < container->m2->col; j++){
+			temp_sum = 0;
+			for(k=0; k< container->m1->col; k++){
+				temp_sum = temp_sum + 
+				container->m1->matrix[row*container->m1->col + k] * 
+				container->m2->matrix[k*container->m2->col + j];
+			}
+			container->result[row*container->m2->col + j] = temp_sum;
+		}
+		//find the row that the thread is working on
+		row = count*container->thread_count + i;
+		count++;
+	}
+	
+	//complete the thread
+	pthread_exit(NULL);
+}
 
 scottgs::FloatMatrix scottgs::MatrixMultiply::operator()(const scottgs::FloatMatrix& lhs, const scottgs::FloatMatrix& rhs) const
 {
 	// Verify acceptable dimensions
 	if (lhs.size2() != rhs.size1())
 		throw std::logic_error("matrix incompatible lhs.size2() != rhs.size1()");
-
-	m1 = (mat_struct*)malloc(sizeof(mat_struct));
-	m2 = (mat_struct*)malloc(sizeof(mat_struct));
+	container_struct** container = (container_struct**)malloc(sizeof(container_struct*)*NUM_THREADS);
+	mat_struct* m1 = (mat_struct*)malloc(sizeof(mat_struct));
+	mat_struct* m2 = (mat_struct*)malloc(sizeof(mat_struct));
 	
 	//create the unsigned ints used for the three for loops
 	unsigned int i; //matrices indexes
@@ -105,7 +147,7 @@ scottgs::FloatMatrix scottgs::MatrixMultiply::operator()(const scottgs::FloatMat
 	scottgs::FloatMatrix return_result(m1->row,m2->col);
 	
 	//MATRIX C IS THE MATRIX THAT IS THE PRODUCT OF AxB
-	result = &return_result(0,0);
+	float* result = &return_result(0,0);
 	
 	//get a reference of the matrix's first element ( this will be a pointer to the first element )
 	m1->matrix = &lhs(0,0);
@@ -115,21 +157,14 @@ scottgs::FloatMatrix scottgs::MatrixMultiply::operator()(const scottgs::FloatMat
 	//that will store all the threads so we can easily traverse them one by one to join them later
 	//we make the same amount of threads as the amount of rows in the new matrix(hence A->i)
 	pthread_t** threads = (pthread_t**) malloc(sizeof(pthread_t*)*m1->row);
-	
-	//an array of rows to specify which row the thread is going to execute over.
-	//this int pointer(int array) will hold the number for each index A[0] = 0, A[1] = 1
-	//and so fort just so we can pass it by address to the threading function
-	int* rows = (int*) malloc(sizeof(int)*m1->row);
-	if(rows == NULL) exit(-1);
+		
 	//variable used to see if the thread was created
 	int created = 0;
-	//get number of cores on the current system
-	unsigned int numCPU = sysconf( _SC_NPROCESSORS_ONLN );
-	//if the requested number of threads is larger than the max number of cores
-	//then only use max cores.
-	thread_count = NUM_THREADS;
+	
 	//create a function pointer so we can easily change the different partitoin methods
 	void* (*method_func)(void*);
+		
+	unsigned int thread_count = NUM_THREADS;
 	
 	//PARTITION_METHOD is a global variable that passed throuugh the Makefile.
 	switch(PARTITION_METHOD){
@@ -137,24 +172,38 @@ scottgs::FloatMatrix scottgs::MatrixMultiply::operator()(const scottgs::FloatMat
 			method_func = &matrix_thread_row;
 		break;
 		case 1:
-			//method_func = &matrix_thread_block;
+			method_func = &matrix_thread_block;
+			if(m1->row < thread_count)
+				thread_count = m1->row;
 		break;
 		case 2:
 			//method_func = &matrix_thread_cell;
 		break;
 	}
-	if(numCPU < NUM_THREADS) 
-		thread_count = numCPU;
+	
+	unsigned int step = m1->row/thread_count;
+	unsigned int extra = m1->row%thread_count;
 	
 	//Spawn all the threads
 	for (i = 0; i < thread_count; ++i){
 		//allocate memory inside the threads array for each thread and cast the malloc
 		threads[i] = (pthread_t*)malloc(sizeof(pthread_t));
-		//insert the row number for this thread
-		rows[i] = i;
+		container[i] = (container_struct*)malloc(sizeof(container_struct));	
+		
+		container[i]->m1 = m1;
+		container[i]->m2 = m2;
+		container[i]->thread_count = thread_count;
+		container[i]->i = i;
+		container[i]->result = result;
+		container[i]->start_block = i*step;
+		container[i]->end_block = container[i]->start_block + step;
+		//if at last thread, add any extra rows left over
+		if(i==(thread_count-1))
+			container[i]->end_block += extra;
 		//create and execute the thread, pass it the thread pointer, NULL, the function to execute,
 		//and a the address of the row number but cast it as void pointer as that is what the function expect
-		created = pthread_create(threads[i], NULL, method_func, (void*)&rows[i]);
+		created = pthread_create(threads[i], NULL, method_func, (void*)container[i]);
+		
 		//if the value is negative then we have an error creating the thread
 		if(created < 0){
 			std::cout << "Thread failed to create\n";
@@ -162,10 +211,10 @@ scottgs::FloatMatrix scottgs::MatrixMultiply::operator()(const scottgs::FloatMat
 	}
 	
 	//loop through the number of threads and join them(waiting for them to finish their work)
-	for(i=0; i<thread_count; i++){
+	/*for(i=0; i<thread_count; i++){
 		//join the threads back one by one
 		pthread_join(*threads[i],NULL);
-	}
+	}*/
 	
 	//NOT WORKING - BAD FREE OR SOMETHING.
 	/*

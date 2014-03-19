@@ -28,32 +28,15 @@ int main(int argc, char * argv[])
 	// Build up a set of test matrix-pair sizes
 	// ---------------------------------------------
 	std::vector<std::pair<std::pair<unsigned short,unsigned short>, std::pair<unsigned short,unsigned short> > > testList;
-	testList.push_back( std::make_pair(std::pair<unsigned short,unsigned short>(50,40),
-					   std::pair<unsigned short,unsigned short>(40,60)) );
-
-	testList.push_back( std::make_pair(std::pair<unsigned short,unsigned short>(60,50),
-					   std::pair<unsigned short,unsigned short>(50,70)) );
-
-	testList.push_back( std::make_pair(std::pair<unsigned short,unsigned short>(70,60),
-					   std::pair<unsigned short,unsigned short>(60,80)) );
-
-	testList.push_back( std::make_pair(std::pair<unsigned short,unsigned short>(80,70),
-					   std::pair<unsigned short,unsigned short>(70,90)) );
-
-	testList.push_back( std::make_pair(std::pair<unsigned short,unsigned short>(90,80),
-					   std::pair<unsigned short,unsigned short>(80,100)) );
-
-	testList.push_back( std::make_pair(std::pair<unsigned short,unsigned short>(100,90),
-					   std::pair<unsigned short,unsigned short>(90,110)) );
-
-	testList.push_back( std::make_pair(std::pair<unsigned short,unsigned short>(200,90),
-					   std::pair<unsigned short,unsigned short>(90,220)) );
-
-	testList.push_back( std::make_pair(std::pair<unsigned short,unsigned short>(200,180),
-					   std::pair<unsigned short,unsigned short>(180,220)) );
-
-	testList.push_back( std::make_pair(std::pair<unsigned short,unsigned short>(400,360),
-					   std::pair<unsigned short,unsigned short>(360,240)) );		   
+	
+	testList.push_back( std::make_pair(std::pair<unsigned short,unsigned short>(800,660),
+					   std::pair<unsigned short,unsigned short>(660,640)) );
+	testList.push_back( std::make_pair(std::pair<unsigned short,unsigned short>(1400,960),
+					   std::pair<unsigned short,unsigned short>(960,1110)) );
+	testList.push_back( std::make_pair(std::pair<unsigned short,unsigned short>(2000,1500),
+					   std::pair<unsigned short,unsigned short>(1500,2200)) );
+	testList.push_back( std::make_pair(std::pair<unsigned short,unsigned short>(3000,2500),
+					   std::pair<unsigned short,unsigned short>(2500,3200)) );		   
 
 	// ***********************************
 	// Test functor
