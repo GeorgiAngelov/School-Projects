@@ -44,6 +44,25 @@ scottgs::MatrixMultiply::~MatrixMultiply()
 	;
 }
 
+
+/**
+*	The function performs the two innermost loops of the matrix multiplication.
+*	It receives the row to be processed and the container holding all the information.
+*/
+void matrixMultiplyInner(const unsigned int row, container_struct* container){
+	float temp_sum = 0;
+	unsigned int j=0,k=0;
+	for(j=0; j < container->m2->col; j++){
+		temp_sum = 0;
+		for(k=0; k< container->m1->col; k++){
+			temp_sum = temp_sum + 
+			container->m1->matrix[row*container->m1->col + k] * 
+			container->m2->matrix[k*container->m2->col + j];
+		}
+		container->result[row*container->m2->col + j] = temp_sum;
+	}
+}
+
 /**
 *	The function is using a thread to compute the 
 *	dot product of two matrices with a block of rows for each thread.
@@ -53,29 +72,13 @@ scottgs::MatrixMultiply::~MatrixMultiply()
 void* matrix_thread_block(void *t){
 	container_struct* container = (container_struct*)t;
 	unsigned int i=container->i;
-	unsigned int j=0,k=0;
 	
-	//pthread_t variable to print the id of the thread
-	pthread_t tid = pthread_self();
-	
-	//print the thread is and the row that it is going to work on
-	std::cout << "Created worker thread " << (unsigned int)tid << " for row " << container->i << std::endl;
-	float temp_sum = 0;
 	unsigned count = 0;
 	unsigned int row = count*container->thread_count + i;
 	count++;
 	//let the thread loop through the row's it's supposed to run through
 	for(row=container->start_block; row < container->end_block; row++){
-		//inner loop runs from 0 to number of columns in matrix m2
-		for(j=0; j < container->m2->col; j++){
-			temp_sum = 0;
-			for(k=0; k< container->m1->col; k++){
-				temp_sum = temp_sum + 
-				container->m1->matrix[row*container->m1->col + k] * 
-				container->m2->matrix[k*container->m2->col + j];
-			}
-			container->result[row*container->m2->col + j] = temp_sum;
-		}
+		matrixMultiplyInner(row, container);
 		//find the row that the thread is working on
 		row = count*container->thread_count + i;
 		count++;
@@ -94,29 +97,14 @@ void* matrix_thread_block(void *t){
 void* matrix_thread_row(void *t){
 	container_struct* container = (container_struct*)t;
 	unsigned int i=container->i;
-	unsigned int j=0,k=0;
 	
-	//pthread_t variable to print the id of the thread
-	pthread_t tid = pthread_self();
-	
-	//print the thread is and the row that it is going to work on
-	std::cout << "Created worker thread " << (unsigned int)tid << " for row " << container->i << std::endl;
-	float temp_sum = 0;
 	unsigned count = 0;
 	unsigned int row = count*container->thread_count + i;
 	count++;
 	//let the thread loop through the row's it's supposed to run through
 	while(row < container->m1->row){
 		//inner loop runs from 0 to number of columns in matrix m2
-		for(j=0; j < container->m2->col; j++){
-			temp_sum = 0;
-			for(k=0; k< container->m1->col; k++){
-				temp_sum = temp_sum + 
-				container->m1->matrix[row*container->m1->col + k] * 
-				container->m2->matrix[k*container->m2->col + j];
-			}
-			container->result[row*container->m2->col + j] = temp_sum;
-		}
+		matrixMultiplyInner(row, container);
 		//find the row that the thread is working on
 		row = count*container->thread_count + i;
 		count++;
@@ -152,11 +140,6 @@ scottgs::FloatMatrix scottgs::MatrixMultiply::operator()(const scottgs::FloatMat
 	//get a reference of the matrix's first element ( this will be a pointer to the first element )
 	m1->matrix = &lhs(0,0);
 	m2->matrix = &rhs(0,0);
-	
-	//create a double :pointer of type pthread_t(an array of pthread_t variables)
-	//that will store all the threads so we can easily traverse them one by one to join them later
-	//we make the same amount of threads as the amount of rows in the new matrix(hence A->i)
-	pthread_t** threads = (pthread_t**) malloc(sizeof(pthread_t*)*m1->row);
 		
 	//variable used to see if the thread was created
 	int created = 0;
@@ -183,13 +166,18 @@ scottgs::FloatMatrix scottgs::MatrixMultiply::operator()(const scottgs::FloatMat
 	
 	unsigned int step = m1->row/thread_count;
 	unsigned int extra = m1->row%thread_count;
+		
+	//this will hold all the pthreads created
+	pthread_t** threads = (pthread_t**) malloc(sizeof(pthread_t*)*thread_count);
 	
 	//Spawn all the threads
 	for (i = 0; i < thread_count; ++i){
+		
 		//allocate memory inside the threads array for each thread and cast the malloc
 		threads[i] = (pthread_t*)malloc(sizeof(pthread_t));
 		container[i] = (container_struct*)malloc(sizeof(container_struct));	
 		
+		//collect all the data that is to be passed to the thread
 		container[i]->m1 = m1;
 		container[i]->m2 = m2;
 		container[i]->thread_count = thread_count;
@@ -197,31 +185,33 @@ scottgs::FloatMatrix scottgs::MatrixMultiply::operator()(const scottgs::FloatMat
 		container[i]->result = result;
 		container[i]->start_block = i*step;
 		container[i]->end_block = container[i]->start_block + step;
+		
 		//if at last thread, add any extra rows left over
 		if(i==(thread_count-1))
 			container[i]->end_block += extra;
-		//create and execute the thread, pass it the thread pointer, NULL, the function to execute,
-		//and a the address of the row number but cast it as void pointer as that is what the function expect
-		created = pthread_create(threads[i], NULL, method_func, (void*)container[i]);
 		
+		//create the thread
+		created = pthread_create(threads[i], NULL, method_func, (void*)container[i]);
+		std::cout << "Created thread " << *threads[i] << std::endl;
 		//if the value is negative then we have an error creating the thread
 		if(created < 0){
 			std::cout << "Thread failed to create\n";
 		} 
 	}
-	
+ 
 	//loop through the number of threads and join them(waiting for them to finish their work)
-	/*for(i=0; i<thread_count; i++){
+	for(i=0; i<thread_count; i++){
+		std::cout << "Closing thread " << *threads[i] << std::endl;
 		//join the threads back one by one
-		pthread_join(*threads[i],NULL);
-	}*/
+		pthread_join(*threads[i], NULL);
+	}
 	
 	//NOT WORKING - BAD FREE OR SOMETHING.
-	/*
+	
 	for(i=0; i<thread_count; i++){
 		//free the thread's structure
 		free(threads[i]);
-	}*/
+	}
 	
 	//free the threads structure
 	//free(rows);
