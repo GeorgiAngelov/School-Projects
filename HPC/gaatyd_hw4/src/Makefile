@@ -12,7 +12,7 @@ hw4.o:	hw4.cpp
 	g++ ${MY_FLAGS} -Wall -c hw4.cpp
 
 MatrixMultiply.o : MatrixMultiply.hpp MatrixMultiply.cpp
-	g++ ${MY_FLAGS} -Wall -c MatrixMultiply.cpp -DNUM_THREADS=8 -DPARTITION_METHOD=1
+	g++ ${MY_FLAGS} -Wall -c MatrixMultiply.cpp -DNUM_THREADS=1 -DPARTITION_METHOD=0
 
 clean:
 	rm -f *.o hw4

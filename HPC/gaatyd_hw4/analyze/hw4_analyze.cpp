@@ -73,11 +73,6 @@ int main(int argc, char * argv[])
 		const unsigned long opsMaybe = l.size1() * r.size2() * l.size2() + l.size1() + r.size2();
 		const unsigned long elements = l.size1() * r.size2();
 		std::cout << "------------------------------------------------------------------" << std::endl
-			  << ITR << " iterations of matrix multiplication (functor) ran using ("
-			  << l.size1() <<","<< l.size2() <<")*("
-			  << r.size1() <<","<< r.size2() <<") = ("
-			  << l.size1() <<","<< r.size2() <<")" << std::endl
-			  << "      :Method:Average Time (s):approximate ops:computed elements" << std::endl
 			  << "Data  Point:f:" << avgMs << ":" << opsMaybe<< ":" << elements << std::endl;
 	}
 

@@ -13,7 +13,7 @@ void initRandomMatrix(scottgs::FloatMatrix& m);
 
 int main(int argc, char * argv[])
 {
-	std::cout << "Homework 3" << std::endl 
+	std::cout << "Homework 4" << std::endl 
 		  << "Georgi Angelov (gaatyd)" << std::endl;  // CHANGE TO YOUR name AND pawprint
 
 	// ---------------------------------------------
