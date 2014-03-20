@@ -29,14 +29,14 @@ int main(int argc, char * argv[])
 	// ---------------------------------------------
 	std::vector<std::pair<std::pair<unsigned short,unsigned short>, std::pair<unsigned short,unsigned short> > > testList;
 	
-	testList.push_back( std::make_pair(std::pair<unsigned short,unsigned short>(800,660),
-					   std::pair<unsigned short,unsigned short>(660,640)) );
 	testList.push_back( std::make_pair(std::pair<unsigned short,unsigned short>(1400,960),
 					   std::pair<unsigned short,unsigned short>(960,1110)) );
 	testList.push_back( std::make_pair(std::pair<unsigned short,unsigned short>(2000,1500),
 					   std::pair<unsigned short,unsigned short>(1500,2200)) );
 	testList.push_back( std::make_pair(std::pair<unsigned short,unsigned short>(3000,2500),
-					   std::pair<unsigned short,unsigned short>(2500,3200)) );		   
+					   std::pair<unsigned short,unsigned short>(2500,3200)) );
+	testList.push_back( std::make_pair(std::pair<unsigned short,unsigned short>(5000,4000),
+					   std::pair<unsigned short,unsigned short>(4000,4700)) );	
 
 	// ***********************************
 	// Test functor

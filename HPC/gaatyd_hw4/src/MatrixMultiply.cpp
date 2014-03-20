@@ -71,7 +71,6 @@ void matrixMultiplyInner(const unsigned int row, container_struct* container){
 */
 void* matrix_thread_interleaved(void *t){
 	container_struct* container = (container_struct*)t;
-	unsigned int i=container->i;
 	unsigned int result_size = container->m1->row * container->m2->col;
 	unsigned int counter = 0;
 	unsigned int row = 0;
@@ -210,7 +209,7 @@ scottgs::FloatMatrix scottgs::MatrixMultiply::operator()(const scottgs::FloatMat
 			method_func = &matrix_thread_interleaved;
 		break;
 	}
-	 
+	
 	unsigned int step = m1->row/thread_count;
 	unsigned int extra = m1->row%thread_count;
 		
