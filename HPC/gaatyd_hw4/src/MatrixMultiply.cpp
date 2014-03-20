@@ -32,6 +32,9 @@ typedef struct{
 	unsigned int end_block;
 	float *result;
 	unsigned int thread_count;
+	pthread_mutex_t* mutex_position; //used for interleaved example
+	pthread_mutex_t* mutex_result; //used for interleaved example
+	unsigned int* counter; //used for interleaved example
 }container_struct;
 
 scottgs::MatrixMultiply::MatrixMultiply() 
@@ -43,7 +46,6 @@ scottgs::MatrixMultiply::~MatrixMultiply()
 {
 	;
 }
-
 
 /**
 *	The function performs the two innermost loops of the matrix multiplication.
@@ -61,6 +63,49 @@ void matrixMultiplyInner(const unsigned int row, container_struct* container){
 		}
 		container->result[row*container->m2->col + j] = temp_sum;
 	}
+}
+
+/**
+*	The function is using a thread to compute the 
+*	dot product of two matrices with a CELL interleaved technique using MUTEX.
+*/
+void* matrix_thread_interleaved(void *t){
+	container_struct* container = (container_struct*)t;
+	unsigned int i=container->i;
+	unsigned int result_size = container->m1->row * container->m2->col;
+	unsigned int counter = 0;
+	unsigned int row = 0;
+	unsigned int col = 0;
+	unsigned int k = 0;
+	float temp_sum = 0;
+	while(1){
+		/* try to lock(or wait until unlocked) the mutex_position */
+		pthread_mutex_lock(container->mutex_position);
+		if(*(container->counter) >= result_size){
+			pthread_mutex_unlock(container->mutex_position);
+			break;
+		}
+		counter = *(container->counter);
+		*(container->counter)+=1;
+		/* unlock the mutex */
+		pthread_mutex_unlock(container->mutex_position);
+		
+		//get the row and col values
+		row = counter/container->m2->col;
+		col = counter%container->m2->col;
+		temp_sum = 0;
+		//loop through the number of columns in m1
+		for(k=0; k<container->m1->col; k++){
+			temp_sum = temp_sum + 
+			container->m1->matrix[row*container->m1->col + k] * 
+			container->m2->matrix[k*container->m2->col + col];
+		}
+		//lock the result matrix
+		pthread_mutex_lock(container->mutex_result);
+		container->result[row*container->m2->col + col] = temp_sum;
+		pthread_mutex_unlock(container->mutex_result);
+	}
+	pthread_exit(NULL);
 }
 
 /**
@@ -140,14 +185,16 @@ scottgs::FloatMatrix scottgs::MatrixMultiply::operator()(const scottgs::FloatMat
 	//get a reference of the matrix's first element ( this will be a pointer to the first element )
 	m1->matrix = &lhs(0,0);
 	m2->matrix = &rhs(0,0);
-		
 	//variable used to see if the thread was created
 	int created = 0;
-	
 	//create a function pointer so we can easily change the different partitoin methods
 	void* (*method_func)(void*);
-		
 	unsigned int thread_count = NUM_THREADS;
+	pthread_mutex_t* mutex_position = (pthread_mutex_t*)malloc(sizeof(pthread_mutex_t));
+	pthread_mutex_t* mutex_result = (pthread_mutex_t*)malloc(sizeof(pthread_mutex_t));
+	/* initialize mutex */
+	pthread_mutex_init(mutex_position, NULL);
+	pthread_mutex_init(mutex_result, NULL);
 	
 	//PARTITION_METHOD is a global variable that passed throuugh the Makefile.
 	switch(PARTITION_METHOD){
@@ -160,15 +207,18 @@ scottgs::FloatMatrix scottgs::MatrixMultiply::operator()(const scottgs::FloatMat
 				thread_count = m1->row;
 		break;
 		case 2:
-			//method_func = &matrix_thread_cell;
+			method_func = &matrix_thread_interleaved;
 		break;
 	}
-	
+	 
 	unsigned int step = m1->row/thread_count;
 	unsigned int extra = m1->row%thread_count;
 		
 	//this will hold all the pthreads created
 	pthread_t** threads = (pthread_t**) malloc(sizeof(pthread_t*)*thread_count);
+	//this will be used for the interleaved example(pointer so they can change the value across all);
+	unsigned int* counter = (unsigned int*) malloc(sizeof(unsigned int));
+	*counter = 0;
 	
 	//Spawn all the threads
 	for (i = 0; i < thread_count; ++i){
@@ -185,6 +235,9 @@ scottgs::FloatMatrix scottgs::MatrixMultiply::operator()(const scottgs::FloatMat
 		container[i]->result = result;
 		container[i]->start_block = i*step;
 		container[i]->end_block = container[i]->start_block + step;
+		container[i]->mutex_position = mutex_position;
+		container[i]->mutex_result = mutex_result;
+		container[i]->counter = counter;
 		
 		//if at last thread, add any extra rows left over
 		if(i==(thread_count-1))
@@ -192,7 +245,6 @@ scottgs::FloatMatrix scottgs::MatrixMultiply::operator()(const scottgs::FloatMat
 		
 		//create the thread
 		created = pthread_create(threads[i], NULL, method_func, (void*)container[i]);
-		std::cout << "Created thread " << *threads[i] << std::endl;
 		//if the value is negative then we have an error creating the thread
 		if(created < 0){
 			std::cout << "Thread failed to create\n";
@@ -201,21 +253,17 @@ scottgs::FloatMatrix scottgs::MatrixMultiply::operator()(const scottgs::FloatMat
  
 	//loop through the number of threads and join them(waiting for them to finish their work)
 	for(i=0; i<thread_count; i++){
-		std::cout << "Closing thread " << *threads[i] << std::endl;
 		//join the threads back one by one
 		pthread_join(*threads[i], NULL);
 	}
 	
-	//NOT WORKING - BAD FREE OR SOMETHING.
-	
+	/****CLEANUP****/
 	for(i=0; i<thread_count; i++){
 		//free the thread's structure
 		free(threads[i]);
 	}
-	
 	//free the threads structure
-	//free(rows);
-	//free(threads);
+	free(threads);
 	return return_result;
 }
 
