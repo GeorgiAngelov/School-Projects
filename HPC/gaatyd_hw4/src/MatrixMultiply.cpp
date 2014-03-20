@@ -56,12 +56,13 @@ void matrixMultiplyInner(const unsigned int row, container_struct* container){
 	unsigned int j=0,k=0;
 	for(j=0; j < container->m2->col; j++){
 		temp_sum = 0;
-		for(k=0; k< container->m1->col; k++){
+		for(k=0; k < container->m1->col; k++){
 			temp_sum = temp_sum + 
 			container->m1->matrix[row*container->m1->col + k] * 
 			container->m2->matrix[k*container->m2->col + j];
 		}
 		container->result[row*container->m2->col + j] = temp_sum;
+		std::cout << "Inside matrixMultiplyInner " << temp_sum << std::endl;
 	}
 }
 
@@ -123,8 +124,6 @@ void* matrix_thread_block(void *t){
 	//let the thread loop through the row's it's supposed to run through
 	for(row=container->start_block; row < container->end_block; row++){
 		matrixMultiplyInner(row, container);
-		//find the row that the thread is working on
-		row = count*container->thread_count + i;
 		count++;
 	}
 	
@@ -163,7 +162,6 @@ scottgs::FloatMatrix scottgs::MatrixMultiply::operator()(const scottgs::FloatMat
 	// Verify acceptable dimensions
 	if (lhs.size2() != rhs.size1())
 		throw std::logic_error("matrix incompatible lhs.size2() != rhs.size1()");
-	container_struct** container = (container_struct**)malloc(sizeof(container_struct*)*NUM_THREADS);
 	mat_struct* m1 = (mat_struct*)malloc(sizeof(mat_struct));
 	mat_struct* m2 = (mat_struct*)malloc(sizeof(mat_struct));
 	
@@ -215,6 +213,7 @@ scottgs::FloatMatrix scottgs::MatrixMultiply::operator()(const scottgs::FloatMat
 		
 	//this will hold all the pthreads created
 	pthread_t** threads = (pthread_t**) malloc(sizeof(pthread_t*)*thread_count);
+	container_struct** container = (container_struct**)malloc(sizeof(container_struct*)*thread_count);
 	//this will be used for the interleaved example(pointer so they can change the value across all);
 	unsigned int* counter = (unsigned int*) malloc(sizeof(unsigned int));
 	*counter = 0;
@@ -244,6 +243,7 @@ scottgs::FloatMatrix scottgs::MatrixMultiply::operator()(const scottgs::FloatMat
 		
 		//create the thread
 		created = pthread_create(threads[i], NULL, method_func, (void*)container[i]);
+		std::cout << "Created thread num " << i << " and start_block is : " << container[i]->start_block << " and end block is : " << container[i]->end_block << std::endl;
 		//if the value is negative then we have an error creating the thread
 		if(created < 0){
 			std::cout << "Thread failed to create\n";
@@ -260,9 +260,13 @@ scottgs::FloatMatrix scottgs::MatrixMultiply::operator()(const scottgs::FloatMat
 	for(i=0; i<thread_count; i++){
 		//free the thread's structure
 		free(threads[i]);
+		free(container[i]);
 	}
 	//free the threads structure
 	free(threads);
+	free(container);
+	free(mutex_position);
+	free(mutex_result);
 	return return_result;
 }
 
