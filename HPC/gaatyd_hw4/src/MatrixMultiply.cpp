@@ -62,7 +62,6 @@ void matrixMultiplyInner(const unsigned int row, container_struct* container){
 			container->m2->matrix[k*container->m2->col + j];
 		}
 		container->result[row*container->m2->col + j] = temp_sum;
-		std::cout << "Inside matrixMultiplyInner " << temp_sum << std::endl;
 	}
 }
 
@@ -243,7 +242,6 @@ scottgs::FloatMatrix scottgs::MatrixMultiply::operator()(const scottgs::FloatMat
 		
 		//create the thread
 		created = pthread_create(threads[i], NULL, method_func, (void*)container[i]);
-		std::cout << "Created thread num " << i << " and start_block is : " << container[i]->start_block << " and end block is : " << container[i]->end_block << std::endl;
 		//if the value is negative then we have an error creating the thread
 		if(created < 0){
 			std::cout << "Thread failed to create\n";
