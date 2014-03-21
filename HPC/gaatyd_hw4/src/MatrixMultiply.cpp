@@ -33,7 +33,6 @@ typedef struct{
 	float *result;
 	unsigned int thread_count;
 	pthread_mutex_t* mutex_position; //used for interleaved example
-	pthread_mutex_t* mutex_result; //used for interleaved example
 	unsigned int* counter; //used for interleaved example
 }container_struct;
 
@@ -100,9 +99,7 @@ void* matrix_thread_interleaved(void *t){
 			container->m2->matrix[k*container->m2->col + col];
 		}
 		//lock the result matrix
-		pthread_mutex_lock(container->mutex_result);
 		container->result[row*container->m2->col + col] = temp_sum;
-		pthread_mutex_unlock(container->mutex_result);
 	}
 	pthread_exit(NULL);
 }
@@ -187,10 +184,8 @@ scottgs::FloatMatrix scottgs::MatrixMultiply::operator()(const scottgs::FloatMat
 	void* (*method_func)(void*);
 	unsigned int thread_count = NUM_THREADS;
 	pthread_mutex_t* mutex_position = (pthread_mutex_t*)malloc(sizeof(pthread_mutex_t));
-	pthread_mutex_t* mutex_result = (pthread_mutex_t*)malloc(sizeof(pthread_mutex_t));
 	/* initialize mutex */
 	pthread_mutex_init(mutex_position, NULL);
-	pthread_mutex_init(mutex_result, NULL);
 	
 	//PARTITION_METHOD is a global variable that passed throuugh the Makefile.
 	switch(PARTITION_METHOD){
@@ -233,7 +228,6 @@ scottgs::FloatMatrix scottgs::MatrixMultiply::operator()(const scottgs::FloatMat
 		container[i]->start_block = i*step;
 		container[i]->end_block = container[i]->start_block + step;
 		container[i]->mutex_position = mutex_position;
-		container[i]->mutex_result = mutex_result;
 		container[i]->counter = counter;
 		
 		//if at last thread, add any extra rows left over
@@ -264,7 +258,6 @@ scottgs::FloatMatrix scottgs::MatrixMultiply::operator()(const scottgs::FloatMat
 	free(threads);
 	free(container);
 	free(mutex_position);
-	free(mutex_result);
 	return return_result;
 }
 

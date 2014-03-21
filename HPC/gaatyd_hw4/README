@@ -1,4 +1,4 @@
-To run this program, execute the following commands while in folder gaatyd_hw4:
+To run this program, execute the following commands while inside the MAIN folder:
 
 make clean
 make
