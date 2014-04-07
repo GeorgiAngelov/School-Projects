@@ -1,9 +1,9 @@
 #!/bin/sh
 
 #PBS -N word_counter
-#PBS -l nodes=25,walltime=00:01:00
-#PBS -M kmm4mc@mizzou.edu
+#PBS -l nodes=4:ppn=4,walltime=00:01:00
+#PBS -M gaatyd@mail.missouri.edu
 #PBS -m abe
 
 module load openmpi-x86_64
-mpirun /cluster/students/c/kmm4mc/mpi/word_counter /cluster/students/c/kmm4mc/mpi/genesis.txt
+mpirun /cluster/students/d/gaatyd/Homeworks/HPC/mpi/word_counter /cluster/students/d/gaatyd/Homeworks/HPC/mpi/genesis.txt
