@@ -6,4 +6,5 @@
 #PBS -m abe
 
 module load openmpi-x86_64
-mpirun /cluster/students/d/gaatyd/Homeworks/HPC/mpi/mpi_test
+cd /cluster/students/d/gaatyd/Homeworks/HPC/mpi/
+mpirun mpi_test Georgi
