@@ -1,4 +1,6 @@
-To run this program, execute the following commands while inside the MAIN folder:
+Please run on Babbage2 or Babbage3
+
+To run this program, execute the following commands while inside the main folder:
 
 make clean
 make

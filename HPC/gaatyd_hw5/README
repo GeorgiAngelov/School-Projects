@@ -1,0 +1,3 @@
+To compile execute: make
+
+To run the program execute : ./hw2 <data_file> <number of processes> <number of results>
