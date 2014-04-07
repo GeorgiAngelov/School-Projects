@@ -1,0 +1,15 @@
+To run this program, execute the following commands while inside the MAIN folder:
+
+make clean
+make
+cd analyze
+./hw4_analyze
+
+To change the number of THREADS, access the src/ folder and open the Makefile.
+Change -DNUM_THREADS= to your desired thread count.
+
+To change the type of matrix partitioning scheme, access the src/ folder and open the Makefile.
+Change -DPARTITION_METHOD= to your desired partitioning scheme:
+	0: Row-interleaved
+	1: Block-partitioned
+	2: Cell interleaved

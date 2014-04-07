@@ -1,0 +1,5 @@
+Homework #0
+
+To compile the program please execute fhe following command: make
+
+To run the executable please execute the following command: ./hw0 <path_to_data_file>
