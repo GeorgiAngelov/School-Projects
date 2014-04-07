@@ -1,7 +1,7 @@
 #!/bin/sh
 
 #PBS -N mpi_test
-#PBS -l nodes=4:ppn=4,walltime=00:01:00
+#PBS -l nodes=4,walltime=00:01:00
 #PBS -M gaatyd@mail.missouri.edu
 #PBS -m abe
 
