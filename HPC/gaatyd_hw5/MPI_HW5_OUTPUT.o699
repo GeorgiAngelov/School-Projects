@@ -1,0 +1,9 @@
+Worker - Rank: 1 OK! and received value 5
+I am master and the world size is : 4
+ I send a message to mky worker thread 
+I am master and the world size is : 4
+ I send a message to mky worker thread 
+Worker - Rank: 2 OK! and received value 10
+I am master and the world size is : 4
+ I send a message to mky worker thread 
+Worker - Rank: 3 OK! and received value 30

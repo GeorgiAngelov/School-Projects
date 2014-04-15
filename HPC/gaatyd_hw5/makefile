@@ -12,5 +12,8 @@ file_parser.o: file_parser.cpp file_parser.hpp
 Splitter.o: Splitter.cpp Splitter.hpp
 	g++ ${options} -c Splitter.cpp
 	
+main.o: main.cpp
+	mpic++ main.cpp
+	
 clean:
 	rm -rf *o hw5
