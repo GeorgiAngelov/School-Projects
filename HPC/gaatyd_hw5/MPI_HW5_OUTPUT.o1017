@@ -1,0 +1,5 @@
+The displacement is 0
+The displacement is 0
+I am master and the world size is : 2
+ I send a message to mky worker thread 
+Worker - Rank: 1 OK! and the value received through the message is 5 and seed is 12312
