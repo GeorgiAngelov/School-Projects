@@ -1,11 +1,39 @@
 #include <iostream>
 #include <mpi.h>
 #include "main.hpp"
+#include "scanner.cpp"
+
+void returnFiles(char *directory_path){
+	// Define a template type, and its iterator	
+	typedef std::map<std::string,path_list_type> content_type;
+	typedef content_type::const_iterator content_type_citr;
+	
+	// Get the file list from the directory
+	content_type directoryContents = getFiles(directory_path);
+	char 
+	// For each type of file found in the directory, 
+	// List all files of that type
+	for (content_type_citr f = directoryContents.begin(); 
+		f!=directoryContents.end();
+		++f)
+	{
+		const path_list_type file_list(f->second);
+		
+		std::cout << "Showing: " << f->first << " type files (" << file_list.size() << ")" << std::endl;
+		for (path_list_type::const_iterator i = file_list.begin();
+			i!=file_list.end(); ++i)
+		{
+			//boost::filesystem::path file_path(boost::filesystem::system_complete(*i));
+			boost::filesystem::path file_path(*i);
+			std::cout << "\t" << file_path.file_string() << std::endl;
+		}
+	}
+}
 
 int main(int argc, char *argv[]){
 	//initialize MPI
 	MPI_Init(&argc, &argv);
-	
+
 	message_to_worker message;
 	//declare my new type
 	MPI_Datatype MessageType;
@@ -19,19 +47,13 @@ int main(int argc, char *argv[]){
 	
 	//this will store the displacement for each var in the structure
 	//MPI_Aint disp[3];
-	MPI_Aint disp[2] = {0,0};
+	MPI_Aint disp[2] = {0,sizeof(int)};
 	MPI_Aint var1, var2;
-	
-	//get the address of the message and put in var1(to used for calculating displacement)
-	/*MPI_Get_address(&(message), &var1);
-	MPI_Get_address(&(message.N), &var2);*/
-	
+
 	//number of vars
 	int count = 2;
 	
 	//define the type
-	//MPI_Type_create_struct(3, blocklen, disp, type, &Particletype);
-    //MPI_Type_commit(&MessageType);
 	MPI_Type_struct(count, blocklen, disp, type, &MessageType);
 	MPI_Type_commit(&MessageType); 
 
@@ -51,9 +73,12 @@ int main(int argc, char *argv[]){
 	//IF MASTER
 	if (rank == 0) {
 		int result;
+		//read the files
+		char directory[] = {"/cluster/content/hpc/distributed_data/"};
+		returnFiles(directory);
 		
 		//send messages to the workers
-		while(counter<2){
+		while(counter<world_size){
 			//send 1 message of type MessageType using my own structure(first parameter)
 			result = MPI_Ssend(&message, 1, MessageType, counter, tag, MPI_COMM_WORLD);
 			
