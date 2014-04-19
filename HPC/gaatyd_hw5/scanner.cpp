@@ -15,10 +15,7 @@
 // Link against boost_filesystem-mt (for multithreaded) or boost_filesystem
 #include "boost/filesystem/operations.hpp"
 #include "boost/filesystem/path.hpp"
-
-#define DIRECTORY "/cluster/content/hpc/distributed data/"
  
-
 // +++++++++++++++++++++++++++++++++++++++++++++++++++
 // ===== DEFINITIONS =======
 typedef std::list<boost::filesystem::path> path_list_type;

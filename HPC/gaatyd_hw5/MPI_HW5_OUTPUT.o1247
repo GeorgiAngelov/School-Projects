@@ -1,0 +1,17 @@
+Showing: REGULAR type files (79)
+I am master and the world size is : 5
+ I send a message to mky worker thread 
+Worker - Rank: 1 OK! and the value received through the message is 5 and seed is 12312
+File at position 1 Is : /cluster/content/hpc/distributed_data/xaip_aa.data
+I am master and the world size is : 5
+ I send a message to mky worker thread 
+Worker - Rank: 2 OK! and the value received through the message is 5 and seed is 12312
+File at position 2 Is : /cluster/content/hpc/distributed_data/xanp_ac.data
+I am master and the world size is : 5
+ I send a message to mky worker thread 
+Worker - Rank: 3 OK! and the value received through the message is 5 and seed is 12312
+File at position 3 Is : /cluster/content/hpc/distributed_data/xalp_ac.data
+I am master and the world size is : 5
+ I send a message to mky worker thread 
+Worker - Rank: 4 OK! and the value received through the message is 5 and seed is 12312
+File at position 4 Is : /cluster/content/hpc/distributed_data/xamp_ad.data
