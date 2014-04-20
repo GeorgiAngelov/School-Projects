@@ -9,12 +9,11 @@ typedef struct _message_to_worker{
 	int seed;
 	char file_names[ROW][COL];
 }message_to_worker;
-/*
-typedef struct _return_message_to_master{
-	int rank;
-	int time;
-	int file_num;
-	float* return_result;
-}message_to_master;
-*/
+
+typedef struct _message_to_master_item{
+	float x;
+	float y;
+	float offset;
+	float dist;
+}message_to_master_item;
 int tag = 123;
