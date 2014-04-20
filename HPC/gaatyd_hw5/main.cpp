@@ -40,9 +40,9 @@ int main(int argc, char *argv[]){
 	
 	//IF MASTER
 	if (rank == 0) {
-	
+		
 		char directory_path[] = {"/cluster/content/hpc/distributed_data/"};
-		message.N = 5;
+		message.N = N_RESULTS;
 		message.seed = 12312;
 		
 		//////////////////////////////////
