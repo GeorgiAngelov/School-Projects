@@ -4,7 +4,7 @@
 *	HW#: Homework 2
 *	Date: 2/26/2014
 */
-
+#include <iostream>
 #include <iostream>
 #include <chrono>
 #include <vector>
@@ -13,6 +13,9 @@
 #include "file_parser.hpp"
 #include "vectorCSV.hpp"
 #include "Splitter.hpp"
+#include "main.hpp"
+#include "scanner.cpp"
+#include <cstring>
 
 struct segment{
 	int proc_id;
@@ -21,42 +24,6 @@ struct segment{
 	unsigned int shm_start;
 	unsigned int shm_end;
 };
-
-std::vector<float> generateScottVector(const unsigned int size){
-	int i=0;
-	//1k file
-	float array1[] = {0.0536727,0.0384691,0.00146231,0.0122459,0.0198738,-0.116341,0.0998519,0.0269831,-0.000772231};
-	float array2[] = {0.0572175,-0.139987,-0.143134,-0.0428729,0.118296,0.0105897,0.0302701,-0.134377,-0.0855214,-0.0757894,0.140506};
-	float array3[] = {0.0416003,0.0107126,0.0120675,-0.00547709,-0.00533309,0.00230428,0.00302696,0.0717615,0.0265672,-0.0319207,0.0132625,-0.0669076,-0.0196825,0.0726006,-0.0277976,0.0813408,-0.0819924};
-	float array4[] = {0.0208535,0.00124793,0.0221286,-0.0251518,-0.00935498,0.000144995,0.0543099,0.152197,-0.0436211,-0.0536875,-0.0389395,-0.163685,0.105508,0.0135837,-0.0582674,-0.0525398,0.107217,-0.0480279,0.00522108,0.0145284,0.10181,-0.19426,0.0345067,0.126417,-0.143776,0.125843,-0.0239083,0.0613458,-0.265121};
-
-	std::vector<float> return_vector;
-	
-	switch(size){
-		case 9:
-			return_vector.reserve(9);
-			for(i; i<9; i++)
-				return_vector.push_back(array1[i]);
-			return return_vector;
-		case 11:
-			return_vector.reserve(11);
-			for(i; i<11; i++)
-				return_vector.push_back(array2[i]);
-			return return_vector;
-		case 17:
-			return_vector.reserve(17);
-			for(i; i<17; i++)
-				return_vector.push_back(array3[i]);
-			return return_vector;
-		case 29:
-			return_vector.reserve(29);
-			for(i; i<29; i++)
-				return_vector.push_back(array4[i]);
-			return return_vector;
-		default:
-		return return_vector;
-	}
-}
 
 struct ResultType {
 	float x; float y; int offset; float dist;
@@ -81,166 +48,12 @@ std::vector<float> generateRandomVector(unsigned int size)
 	return rv;
 }
 
-/**
-*	A functoin that performs a test of a given results set against another result test.
-*/
-bool runTest(const unsigned int vector_size, std::vector<ResultType>* searchVector, unsigned int n){
-	float test_array[10][3];
-	
-	switch(vector_size){
-		case 9:
-			test_array = {
-			{34.4661,68.3391,290},
-			{34.4661,68.3552,140},
-			{34.4664,68.356,140},
-			{34.467,68.3493,20},
-			{34.4664,68.3482,355},
-			{34.4672,68.3638,175},
-			{34.4667,68.3502,25},
-			{34.4675,68.3399,265},
-			{34.4678,68.3574,355},
-			{34.4675,68.3521,25}};
-		break;
-		
-		case 11:
-			test_array =  {
-			{34.4678,68.3346,310},
-			{34.4675,68.3343,310},
-			{34.4672,68.3341,310},
-			{34.467,68.3338,310},
-			{34.4672,68.3343,310},
-			{34.4664,68.351,245},
-			{34.4675,68.3366,215},
-			{34.4678,68.3349,310},  
-			{34.4672,68.3368,215},
-			{34.4661,68.3652,105}};
-		break;
-		
-		case 17:
-			test_array =  {
-			{34.467,68.3624,285},
-			{34.4672,68.3357,155},
-			{34.467,68.3446,155},
-			{34.467,68.3593,75},
-			{34.4659,68.3396,340},
-			{34.4678,68.3571,185},
-			{34.4664,68.3624,325},
-			{34.4678,68.3516,45},
-			{34.4664,68.3471,205},
-			{34.4664,68.3352,10}};
-		break;
-		
-		case 29:
-			test_array = {
-			{34.4667,68.3568,335},
-			{34.4661,68.3441,130},
-			{34.4661,68.3357,145},
-			{34.4664,68.3574,330},
-			{34.4659,68.3435,130},
-			{34.4664,68.3504,60},
-			{34.4664,68.3366,145},
-			{34.4664,68.3374,145},
-			{34.467,68.3385,260},
-			{34.4667,68.3629,10}};
-		break;
-	}
-	
-	for(int i=0; i<n; i++){
-		if(test_array[i][0] != (*searchVector).at(i).x)
-			return false;
-		if(test_array[i][1] != (*searchVector).at(i).y)
-			return false;
-		if(test_array[i][2] != (*searchVector).at(i).offset)
-			return false;
-	}
-	
-	return true;
-}
-
-std::vector<ResultType> generateVectorTest(const unsigned int vector_size){
-	
-	float test_array[10][3];
-	switch(vector_size){
-		case 9:
-			test_array = {
-			{34.4661,68.3391,290},
-			{34.4661,68.3552,140},
-			{34.4664,68.356,140},
-			{34.467,68.3493,20},
-			{34.4664,68.3482,355},
-			{34.4672,68.3638,175},
-			{34.4667,68.3502,25},
-			{34.4675,68.3399,265},
-			{34.4678,68.3574,355},
-			{34.4675,68.3521,25}};
-		break;
-		
-		case 11:
-			test_array =  {
-			{34.4678,68.3346,310},
-			{34.4675,68.3343,310},
-			{34.4672,68.3341,310},
-			{34.467,68.3338,310},
-			{34.4672,68.3343,310},
-			{34.4664,68.351,245},
-			{34.4675,68.3366,215},
-			{34.4678,68.3349,310},  
-			{34.4672,68.3368,215},
-			{34.4661,68.3652,105}};
-		break;
-		
-		case 17:
-			test_array =  {
-			{34.467,68.3624,285},
-			{34.4672,68.3357,155},
-			{34.467,68.3446,155},
-			{34.467,68.3593,75},
-			{34.4659,68.3396,340},
-			{34.4678,68.3571,185},
-			{34.4664,68.3624,325},
-			{34.4678,68.3516,45},
-			{34.4664,68.3471,205},
-			{34.4664,68.3352,10}};
-		break;
-		
-		case 29:
-			test_array = {
-			{34.4667,68.3568,335},
-			{34.4661,68.3441,130},
-			{34.4661,68.3357,145},
-			{34.4664,68.3574,330},
-			{34.4659,68.3435,130},
-			{34.4664,68.3504,60},
-			{34.4664,68.3366,145},
-			{34.4664,68.3374,145},
-			{34.467,68.3385,260},
-			{34.4667,68.3629,10}};
-		break;
-	}
-	//declare a vector of size 10
-	std::vector<ResultType> vectors;
-	ResultType tmp;
-	for(int i=0; i<10; i++){
-		tmp.x = test_array[i][0];
-		tmp.y = test_array[i][1];
-		tmp.offset = test_array[i][2];
-		tmp.dist = 0;
-		vectors.push_back(tmp);
-	}
-	
-	return vectors;
-}
-
 void printVector(const unsigned int n, std::vector<ResultType> results, int vector_size){
 	ResultType one;
 	int i=0;
 	std::cout << "Results:" << std::endl;
-	//std::cout << std::setw(13) << " x" << "|" << std::setw(10) << "y" << "|" << std::setw(8) << "offset" << "|" << std::setw(12) << "score" << std::endl;
-	//std::cout << "-------------+----------+--------+------------" << std::endl;
-	//print the results
-	for(i=0; i<10; i++){
+	for(i=0; i<n; i++){
 		one = results.at(i);
-		//std::cout << i+1 << "." << std::setw(10) << one.x << "|" << std::setw(10) << one.y << "|" << std::setw(8) << one.offset << "|" << std::setw(12) << one.dist << std::endl;
 		std::cout << i+1 << ".   " << one.x << ":" << one.y << ":" << one.offset << std::endl;
 	}
 }
@@ -250,16 +63,14 @@ void printVector(const unsigned int n, std::vector<ResultType> results, int vect
 *	The function also receives the number of results that need to be printed.
 * 	The function also receives the number of processes so it knows how to loop.
 */
-void printResults(float* shm, unsigned int n, unsigned int process_count, unsigned int vector_size){
+void printResults(float* shm, unsigned int n, unsigned int total_number_of_results, unsigned int vector_size){
 	unsigned int i=0;
-	//total entries in the shared memory
-	const unsigned int shm_size = process_count*n*4;
 	ResultType one;
 	std::vector<ResultType> results;
 	
 	//run through the shared memory and insert the values in ResultType
 	//structures and stored them into the results vector.
-	for(i=0; i<shm_size; i++){
+	for(i=0; i<total_number_of_results; i++){
 		one.x = shm[i];
 		one.y = shm[i+1];
 		one.offset = shm[i+2];
@@ -354,198 +165,178 @@ std::vector<ResultType> circularSubvectorMatch(const unsigned int vector_size, s
 	return results;
 }
 
-int main (int argc, char** argv){
-	if(argc < 4){
-		std::cout << "3 command line arguments are needed.\nPlease execute with ./hw0 <input_filename> <process #> <number of match list>\n";
-		return 0;
+void sendWorkToWorkerTmp(int rank, message_to_worker message, int world_size){
+	int i=0;
+	segment node_segment;
+	//WORLD SIZE MUST EXCLUDE THE MASTER NODE !!!
+	world_size -= 1;
+	//make the node be rank 0 (This is just for calculation purposes. Master is still node 0)
+	rank -= 1;
+	
+	//calculate the number of files
+	int size = TOTAL_FILES/world_size;
+	const unsigned int per_procc_mem = message.N*4;
+	//calculate the start and end files from the files array
+	node_segment.start = size*rank;
+	node_segment.end = size*rank + size;
+	int left_over = 0;
+	
+	//if it is the last node, there is left over files
+	if(rank==world_size-1){
+		left_over = TOTAL_FILES%world_size;
 	}
+	
+	node_segment.end += left_over;
+	
+	std::cout << "I am node " << rank + 1 << " and I will process files from " << node_segment.start << " to " << node_segment.end << std::endl;
 	FILE* fPtr; //file pointer to file to be parsed
 	char *line; //line to parse file line by line
-		
-	fPtr = fopen(argv[1], "r");
-	int total_rows = 0;
-	line = (char*)malloc(sizeof(char)*LINE_MAX);
 	VectorsMap points;
 	Parser fileParser;
-	//vectors that will be generated for the runs.
-	std::vector<std::vector<float>> generated_vectors(30);
+	
+	//this is where the final results will be stored
+	//size_t memory_space = (node_segment.end - node_segment.start)*4*VECTOR_SIZE;
+	int space_size = 4*message.N;
+	
+	std::cout << "space size is : " << space_size << std::endl;
+	float * final_results = (float*)malloc(space_size*sizeof(float));
+	
+	int total_rows = 0;
+	line = (char*)malloc(sizeof(char)*LINE_MAX);
+	
+	//seed the random generator with the seed value passed to this node
+	//this is done so each node can do it's own rand vector
+	srand(message.seed);
 
-	//parse the file line by line
-	while(fgets(line, LINE_MAX, fPtr)){
-		//make sure that we do not read an empty line
-		if(line[0] != '\0') {
-			//send the line to be further parsed
-			points.push_back(fileParser.parseLine(line));
-			//increment total rows count
-			total_rows++;	
-		}
-	}
-	free(line);
-	fclose(fPtr);
-
-	srand(34122);
-	int i,j, process_count=atoi(argv[2]), num_max=atoi(argv[3]), size=0;
-	//the size of the search vectors
-	int sizes[] = {9,11,17,29};
-	int sizes_count = 4;
-	//will hold the offsets for each process
-	std::vector<segment> segments(process_count);
-	
-	//initialize shared memory
-	size_t memory_space = process_count*4*num_max;
-	float shm_size = memory_space * sizeof(float);
-	int shmId;
-	// use current time as seed for random generator
-	std::srand(std::time(0));
-	key_t shmKey = std::rand();
-	int shmFlag = IPC_CREAT | 0666;
-	float * shm;
-	
-	/* Initialize shared memory */
-	if((shmId = shmget(shmKey, shm_size, shmFlag)) < 0)
-	{
-		std::cerr << "Init: Failed to initialize shared memory (" << shmId << ")" << std::endl; 
-		exit(1);
-	}
-	
-	if((shm = (float *)shmat(shmId, NULL, 0)) == (float *) -1)
-	{
-		std::cerr << "Init: Failed to attach shared memory (" << shmId << ")" << std::endl; 
-		exit(1);
-	}
-	//get number of items for each process in shared memory
-	const unsigned int per_procc_mem = num_max*4;
-	//initialize offsets
-	for(i=0; i< process_count; i++){
-		//get segments for dataset
-		int size = total_rows/process_count;
-		segments.at(i).start = size*i;
-		segments.at(i).end = size*i + size;
-		
-		//get segments for shared memory location segment for each process
-		segments.at(i).shm_start = i*per_procc_mem;
-		segments.at(i).shm_end = i*per_procc_mem + per_procc_mem;
-		
-		//if at the last process, check to see if the division is not even
-		if(i==process_count-1)
-			segments.at(i).end += total_rows%process_count;
-	}
-	
-	//create the final results vector
-	//reserve enough space to be able to merge all of our processes' stuff
-	std::vector<ResultType> final_results;
-	std::vector<float> copy;
-	final_results.reserve(process_count*num_max);
-
+	int j, process_count=world_size, num_max=message.N;
 	//create start and end chrono time points
 	std::chrono::time_point<std::chrono::system_clock> start, end;
-	std::map<int, double> times;
+	double time = 0;
 	
-	//loop through the 4 different sizes of vectors
-	for(i=0; i<sizes_count; i++){
+	//loop through each file that node is assigned to
+	for(i=node_segment.start; i<node_segment.end; i++){
 		
-		
-		std::cout << "\n\n==============TEST BEGIN==================\n" << std::endl;
-		//run the test:
-		copy = generateScottVector(sizes[i]);
-		final_results = circularSubvectorMatch(sizes[i], &copy, &points, num_max, 0, total_rows, 0, 0, NULL, true);
-		copy.clear();
-		//run the test
-		if(runTest(sizes[i], &final_results, num_max)){
-			std::cout << "Test was SUCCESSFUL against vector: \n" << std::endl;
-			std::cout << scottgs::vectorToCSV(generateScottVector(sizes[i])) << "\n\n" << std::endl;
-		}else{
-			std::cout << "Test FAILED against vector: \n" << std::endl;
-			std::cout << scottgs::vectorToCSV(generateScottVector(sizes[i])) << "\n\n" << std::endl;
-			//exit(-1);
-		}
-		std::cout << "Expected vector results" << std::endl;
-		printVector(num_max, final_results, sizes[i]);
-		std::cout << "\n\nGenerated vector results" << std::endl;
-		printVector(num_max, generateVectorTest(sizes[i]), sizes[i]);
-		
-		final_results.clear();
-		std::cout << "\n\n==============TEST END==================\n\n\n" << std::endl;
-		
-		
-		//generate 30 random vectors of size size[i]
-		for(int ii=0; ii< 30; ii++){
-			generated_vectors.at(ii) = generateRandomVector(sizes[i]);
+		/////////////////////////////////////////
+		/////READ FILE POINTS INTO THE VECTOR////
+		/////////////////////////////////////////
+		fPtr = fopen(message.file_names[i], "r");
+		if(fPtr == NULL){
+			std::cout << "Cannot open file" << std::endl;
 		}
 		
-		//for testing purposes I am only doing 1.
-		//generated_vectors.at(0).reserve(sizes[i]);
-		//generated_vectors.at(0) = generateScottVector(sizes[i]);
-		//loop through the (30 vectors specified in the description)
-		for(j=0; j<30; j++){
-			//let the first process print the results.
-			std::cout << "\n-----------------" << std::endl;
-			std::cout << "Search: "<< sizes[i] << "-D" << std::endl;
-			std::cout << "-----------------" << std::endl;
-			//get an object of the process spawner class..
-			start = std::chrono::system_clock::now();
-			scottgs::Splitter splitter;
-			for (int p = 0; p < process_count; ++p)
-			{
-				pid_t pid = splitter.spawn();
-				if (pid < 0)
-				{
-					std::cerr << "Could not fork!!! ("<< pid <<")" << std::endl;
-					// do not exit, we may have a process 
-					// spawned from an earlier iteration
-					break; 
-				}
-				if (0 == pid) // Child
-				{
-					/* Attach shared memory */
-					if((shm = (float *)shmat(shmId, NULL, 0)) == (float *) -1)
-					{
-						std::cerr << "Init: Failed to attach shared memory (" << shmId << ")" << std::endl; 
-						exit(1);
-					}
-		
-					//let only process 0 to print this vector.
-					if(p == 0){
-						std::cout << "\nSearch Vector: " << std::endl;
-						//print the created vector.
-						std::cout << scottgs::vectorToCSV(generated_vectors[j]) << std::endl;
-					}
+		//vectors that will be generated for the runs.
+		std::vector<std::vector<float>> generated_vectors(NUMBER_OF_TEST_VECTORS);
 
-					//perform the test(delete this as it is not needed)
-					//pas the size of the search vector, the auto generated vector, the vectors from the file,
-					//the number of top results to return, and the offset from which to search.
-					circularSubvectorMatch(sizes[i], &generated_vectors[j], &points, num_max, segments.at(p).start, segments.at(p).end, segments.at(p).shm_start, segments.at(p).shm_end, shm, false);
-					
-					//child exists
-					_exit(0);
-				}//end if pid==0
+		//parse the file line by line and insert each line's points into the points vector
+		while(fgets(line, LINE_MAX, fPtr)){
+			//make sure that we do not read an empty line
+			if(line[0] != '\0') {
+				//send the line to be further parsed
+				//parseLine returns a vector of x,y,point,point,point ....359 points
+				//(first 2 values are x and y)
+				points.push_back(fileParser.parseLine(line));
+				//increment total rows count
+				total_rows++;	
 			}
-			//wait for all children before looping again..
-			splitter.reap_all();
+		}
+		std::cout << "Opened the first file" << std::endl;
+		
+		///////////////////////////////////////////////////////////
+		/////START THE BLOCK OF CALCULATING THE SUBVECTOR MATCH////
+		///////////////////////////////////////////////////////////
+		for(int ii=0; ii< NUMBER_OF_TEST_VECTORS; ii++){
+			generated_vectors.at(ii) = generateRandomVector(VECTOR_SIZE);
+		}
+		
+		//let the first process print the results.
+		std::cout << "\n-----------------" << std::endl;
+		std::cout << "Search: "<< VECTOR_SIZE << "-D" << std::endl;
+		std::cout << "-----------------" << std::endl;
+		
+		//for each random vector, perform the subvector match
+		for(j=0; j<NUMBER_OF_TEST_VECTORS; j++){
+			start = std::chrono::system_clock::now();
+			std::cout << "\nSearch Vector: " << std::endl;
+			
+			//print the created vector.
+			std::cout << scottgs::vectorToCSV(generated_vectors[j]) << std::endl;
+			
+			//call the function to perform the vector submatch and put the results into final_results
+			circularSubvectorMatch(VECTOR_SIZE, &generated_vectors[j], &points, message.N, 0, points.size(), 0, space_size, final_results, false);
+			
+			////////////////
+			/////TIMING/////
+			////////////////
 			//calculate end time.
 			end = std::chrono::system_clock::now();
 			//now perform printing and stuff. from shared memory.		
-			//print end time		
+			//print end time
 			std::chrono::duration<double, std::milli> elapsed_seconds = end-start;
-			//std::cout << "\nTime: " << elapsed_seconds.count() << " milliseconds\n" << std::endl;
-			//keep a record of the time
-			times[sizes[i]] += elapsed_seconds.count();
-	
-			//print top num_max results
-			printResults(shm, num_max, process_count, sizes[i]);
-		}//end 30 vectors loop
-	}//end vector_size loop
-	std::cout << "\n-----------------" << std::endl;
-	std::cout << "Final Results:" << std::endl;
-	std::cout << "-----------------\n" << std::endl;
-	std::cout << "Size" << "|" << "Average Time" << std::endl;
-	std::cout << "-----------------" << std::endl;
-	std::cout << times[sizes[0]]/1 << " " << times[sizes[1]]/1 << " " << times[sizes[2]]/1 << " " << times[sizes[3]]/1 << std::endl;
 
-	//detach the memory
-	shmdt(shm);
-	//delete shared memory after we are done with it.
-	shmctl(shmId, IPC_RMID, NULL);
+			time += elapsed_seconds.count();
+			
+			printResults(final_results, message.N, space_size, VECTOR_SIZE);
+			
+			
+			////////////////////////////////////////
+			//////////SEND MESSAGE!!!//////////////
+			//////////////////////////////////////
+			
+			//reinitialize the final_results
+			free(final_results);
+			final_results = (float*)malloc(space_size*sizeof(float));
+		}
+		
+		std::cout << "Average time elapsed is : " << time/NUMBER_OF_TEST_VECTORS << std::endl;
+		
+		//clean up and reset for the next iteration
+		total_rows = 0;
+		points.clear();
+		fclose(fPtr);
+	}
 	
+	return;
+}
+
+int main (void){
+	message_to_worker message;
+	char directory_path[] = {"/cluster/content/hpc/distributed_data/"};
+	message.N = N_RESULTS;
+	message.seed = 12312;
+	int world_size = NUM_NODES;
+	
+	//////////////////////////////////
+	////////GET THE FILE NAMES////////
+	//////////////////////////////////
+	typedef std::map<std::string,path_list_type> content_type;
+	typedef content_type::const_iterator content_type_citr;
+	// Get the file list from the directory
+	content_type directoryContents = getFiles(directory_path);
+	
+	// For each type of file found in the directory, 
+	// List all files of that type
+	int counter = 0;
+	for (content_type_citr f = directoryContents.begin(); 
+		f!=directoryContents.end();
+		++f)
+	{
+		path_list_type file_list(f->second);
+		
+		std::cout << "Showing: " << f->first << " type files (" << file_list.size() << ")" << std::endl;
+		for (path_list_type::const_iterator i = file_list.begin();
+			i!=file_list.end(); ++i)
+		{
+			boost::filesystem::path file_path(*i);
+			//copy the file name into a char array to pass easily on my custom MPI struct
+			strncpy(message.file_names[counter],file_path.file_string().c_str(), COL);
+			counter++;
+		}
+	}
+	
+	counter = 1;
+	for(int i=1; i<world_size; i++){
+		//send rank and message
+		sendWorkToWorkerTmp(i, message, world_size);
+	}
 	return 0;
 }

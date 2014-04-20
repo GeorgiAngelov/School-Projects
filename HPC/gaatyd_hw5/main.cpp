@@ -2,38 +2,6 @@
 #include <mpi.h>
 #include "main.hpp"
 #include "scanner.cpp"
-/*
-char** returnFiles(char *directory_path){
-	// Define a template type, and its iterator	
-	typedef std::map<std::string,path_list_type> content_type;
-	typedef content_type::const_iterator content_type_citr;
-	// Get the file list from the directory
-	content_type directoryContents = getFiles(directory_path);
-	char file_names[ROW][COL];
-	// For each type of file found in the directory, 
-	// List all files of that type
-	int counter = 0;
-	for (content_type_citr f = directoryContents.begin(); 
-		f!=directoryContents.end();
-		++f)
-	{
-		path_list_type file_list(f->second);
-		
-		std::cout << "Showing: " << f->first << " type files (" << file_list.size() << ")" << std::endl;
-		for (path_list_type::const_iterator i = file_list.begin();
-			i!=file_list.end(); ++i)
-		{
-			//boost::filesystem::path file_path(boost::filesystem::system_complete(*i));
-			boost::filesystem::path file_path(*i);
-			//std::cout << "\t" << file_path.file_string() << std::endl;
-			//char *files = my_copy.c_str();
-			strncpy(file_names[counter],file_path.file_string().c_str(), 60);
-			std::cout << "File name : " << file_names[counter] << std::endl;
-			counter++;
-		}
-	}
-	return file_names;
-}*/
 
 int main(int argc, char *argv[]){
 	//initialize MPI
@@ -98,12 +66,9 @@ int main(int argc, char *argv[]){
 			for (path_list_type::const_iterator i = file_list.begin();
 				i!=file_list.end(); ++i)
 			{
-				//boost::filesystem::path file_path(boost::filesystem::system_complete(*i));
 				boost::filesystem::path file_path(*i);
-				//std::cout << "\t" << file_path.file_string() << std::endl;
-				//char *files = my_copy.c_str();
-				strncpy(message.file_names[counter],file_path.file_string().c_str(), 60);
-				//std::cout << "File name : " << file_names[counter] << std::endl;
+				//copy the file name into a char array to pass easily on my custom MPI struct
+				strncpy(message.file_names[counter],file_path.file_string().c_str(), COL);
 				counter++;
 			}
 		}
@@ -117,7 +82,6 @@ int main(int argc, char *argv[]){
 			//send 1 message of type MessageType using my own structure(first parameter)
 			MPI_Ssend(&message, 1, MessageType, counter, tag, MPI_COMM_WORLD);
 			std::cout << "I am master and the world size is : " << world_size << std::endl;
-			std::cout << " I send a message to mky worker thread " << std::endl;
 			counter++;
 		}
 	}
