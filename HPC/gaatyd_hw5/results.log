@@ -1,97 +1,85 @@
-Showing: REGULAR type files (79)
-I am master and the world size is : 5
-I am master and the world size is : 5
-I am master and the world size is : 5
-I am master and the world size is : 5
-Worker - Rank: 2 OK! and the value received through the message is 5 and seed is 12312
-
------------------
-Search: 29-D
------------------
-Worker - Rank: 3 OK! and the value received through the message is 5 and seed is 12312
-
------------------
-Search: 29-D
------------------
-Worker - Rank: 1 OK! and the value received through the message is 5 and seed is 12312
-Worker - Rank: 4 OK! and the value received through the message is 5 and seed is 12312
-
------------------
-Search: 29-D
------------------
-
------------------
-Search: 29-D
------------------
-Opened the first file
-
-Search Vector: 
-'0.704821,-0.465474,-0.638616,-0.701192,0.475726,-0.462999,-0.273576,-0.378765,0.482539,-0.0396152,-0.892606,0.762005,-0.04302,-0.0175756,0.644187,-0.643138,0.304083,-0.141668,-0.689752,-0.931216,0.534991,0.978294,-0.38246,-0.663847,0.224371,-0.405856,0.268843,-0.461618,0.157216'
-Opened the first file
-
-Search Vector: 
-'0.704821,-0.465474,-0.638616,-0.701192,0.475726,-0.462999,-0.273576,-0.378765,0.482539,-0.0396152,-0.892606,0.762005,-0.04302,-0.0175756,0.644187,-0.643138,0.304083,-0.141668,-0.689752,-0.931216,0.534991,0.978294,-0.38246,-0.663847,0.224371,-0.405856,0.268843,-0.461618,0.157216'
-Opened the first file
-
-Search Vector: 
-'0.704821,-0.465474,-0.638616,-0.701192,0.475726,-0.462999,-0.273576,-0.378765,0.482539,-0.0396152,-0.892606,0.762005,-0.04302,-0.0175756,0.644187,-0.643138,0.304083,-0.141668,-0.689752,-0.931216,0.534991,0.978294,-0.38246,-0.663847,0.224371,-0.405856,0.268843,-0.461618,0.157216'
-Opened the first file
-
-Search Vector: 
-'0.704821,-0.465474,-0.638616,-0.701192,0.475726,-0.462999,-0.273576,-0.378765,0.482539,-0.0396152,-0.892606,0.762005,-0.04302,-0.0175756,0.644187,-0.643138,0.304083,-0.141668,-0.689752,-0.931216,0.534991,0.978294,-0.38246,-0.663847,0.224371,-0.405856,0.268843,-0.461618,0.157216'
-Average time elapsed is : 6323.31
-My rank before printing results is 0
-Average time elapsed is : 6389.18
-My rank before printing results is 1
-Average time elapsed is : 6405.51
-My rank before printing results is 2
-Average time elapsed is : 6735.28
-My rank before printing results is 3
-Opened the first file
-
-Search Vector: 
-'-0.956237,0.168952,-0.137963,-0.42171,0.530336,0.160845,-0.945984,-0.932664,0.88727,-0.324749,0.549876,-0.152346,-0.217355,0.311881,0.804634,0.765069,-0.0439317,-0.838503,0.0691518,0.8144,-0.528256,0.137936,0.349391,-0.549962,0.755476,0.685544,0.674409,-0.65038,-0.0456133'
-Opened the first file
-
-Search Vector: 
-'-0.956237,0.168952,-0.137963,-0.42171,0.530336,0.160845,-0.945984,-0.932664,0.88727,-0.324749,0.549876,-0.152346,-0.217355,0.311881,0.804634,0.765069,-0.0439317,-0.838503,0.0691518,0.8144,-0.528256,0.137936,0.349391,-0.549962,0.755476,0.685544,0.674409,-0.65038,-0.0456133'
-Opened the first file
-
-Search Vector: 
-'-0.956237,0.168952,-0.137963,-0.42171,0.530336,0.160845,-0.945984,-0.932664,0.88727,-0.324749,0.549876,-0.152346,-0.217355,0.311881,0.804634,0.765069,-0.0439317,-0.838503,0.0691518,0.8144,-0.528256,0.137936,0.349391,-0.549962,0.755476,0.685544,0.674409,-0.65038,-0.0456133'
-Opened the first file
-
-Search Vector: 
-'-0.956237,0.168952,-0.137963,-0.42171,0.530336,0.160845,-0.945984,-0.932664,0.88727,-0.324749,0.549876,-0.152346,-0.217355,0.311881,0.804634,0.765069,-0.0439317,-0.838503,0.0691518,0.8144,-0.528256,0.137936,0.349391,-0.549962,0.755476,0.685544,0.674409,-0.65038,-0.0456133'
-Average time elapsed is : 6252.46
-My rank before printing results is 0
-Average time elapsed is : 6246.67
-My rank before printing results is 1
-Average time elapsed is : 6365.11
-My rank before printing results is 2
-Average time elapsed is : 6286.85
-My rank before printing results is 3
-Opened the first file
-
-Search Vector: 
-'-0.787209,0.506837,-0.00184995,0.381743,-0.631127,0.57644,-0.0879215,0.529719,0.630455,-0.020585,0.416988,-0.694294,-0.470709,-0.735357,0.0883504,0.841172,-0.930723,-0.146581,-0.20276,-0.769226,0.922571,-0.38836,-0.297482,0.0605072,0.961031,0.152557,-0.184017,0.646575,-0.173034'
-Opened the first file
-
-Search Vector: 
-'-0.787209,0.506837,-0.00184995,0.381743,-0.631127,0.57644,-0.0879215,0.529719,0.630455,-0.020585,0.416988,-0.694294,-0.470709,-0.735357,0.0883504,0.841172,-0.930723,-0.146581,-0.20276,-0.769226,0.922571,-0.38836,-0.297482,0.0605072,0.961031,0.152557,-0.184017,0.646575,-0.173034'
-Opened the first file
-
-Search Vector: 
-'-0.787209,0.506837,-0.00184995,0.381743,-0.631127,0.57644,-0.0879215,0.529719,0.630455,-0.020585,0.416988,-0.694294,-0.470709,-0.735357,0.0883504,0.841172,-0.930723,-0.146581,-0.20276,-0.769226,0.922571,-0.38836,-0.297482,0.0605072,0.961031,0.152557,-0.184017,0.646575,-0.173034'
-Opened the first file
-
-Search Vector: 
-'-0.787209,0.506837,-0.00184995,0.381743,-0.631127,0.57644,-0.0879215,0.529719,0.630455,-0.020585,0.416988,-0.694294,-0.470709,-0.735357,0.0883504,0.841172,-0.930723,-0.146581,-0.20276,-0.769226,0.922571,-0.38836,-0.297482,0.0605072,0.961031,0.152557,-0.184017,0.646575,-0.173034'
-Average time elapsed is : 6317.49
-My rank before printing results is 0
-Average time elapsed is : 6295.69
-My rank before printing results is 1
-Average time elapsed is : 6329.07
-My rank before printing results is 2
-Average time elapsed is : 6372.34
-My rank before printing results is 3
+Showing: REGULAR type files (6)
+Inside sendWorkerToWorker  and I am rank 0 the file to work on is : /cluster/content/hpc/dev_data/xaap_ab.data_1ooK_ac and the size of the vectors is 29
+got the results in vector format and the size is 5
+the TMP vector before merging
+0:  9.66941
+0:  9.81125
+0:  9.84114
+0:  9.86798
+0:  9.90803
+the return results vector
+0:  9.66941
+0:  9.81125
+0:  9.84114
+0:  9.86798
+0:  9.90803
+Inside sendWorkerToWorker  and I am rank 0 the file to work on is : /cluster/content/hpc/dev_data/xaap_aa.data_1ooK_ac and the size of the vectors is 29
+got the results in vector format and the size is 5
+the TMP vector before merging
+0:  10.2122
+0:  10.2188
+0:  10.2478
+0:  10.2499
+0:  10.2507
+the return results vector
+0:  9.66941
+0:  9.81125
+0:  9.84114
+0:  9.86798
+0:  9.90803
+Inside sendWorkerToWorker  and I am rank 0 the file to work on is : /cluster/content/hpc/dev_data/xaap_ab.data_1ooK_aa and the size of the vectors is 29
+got the results in vector format and the size is 5
+the TMP vector before merging
+0:  9.09235
+0:  9.15927
+0:  9.19304
+0:  9.26937
+0:  9.2813
+the return results vector
+0:  9.09235
+0:  9.15927
+0:  9.19304
+0:  9.26937
+0:  9.2813
+Inside sendWorkerToWorker  and I am rank 0 the file to work on is : /cluster/content/hpc/dev_data/xaap_aa.data_1ooK_ab and the size of the vectors is 29
+got the results in vector format and the size is 5
+the TMP vector before merging
+0:  9.57224
+0:  9.67714
+0:  9.69789
+0:  9.69809
+0:  9.70463
+the return results vector
+0:  9.09235
+0:  9.15927
+0:  9.19304
+0:  9.26937
+0:  9.2813
+Inside sendWorkerToWorker  and I am rank 0 the file to work on is : /cluster/content/hpc/dev_data/xaap_ab.data_1ooK_ab and the size of the vectors is 29
+got the results in vector format and the size is 5
+the TMP vector before merging
+0:  9.28761
+0:  9.35452
+0:  9.49205
+0:  9.52761
+0:  9.58701
+the return results vector
+0:  9.09235
+0:  9.15927
+0:  9.19304
+0:  9.26937
+0:  9.2813
+Inside sendWorkerToWorker  and I am rank 0 the file to work on is : /cluster/content/hpc/dev_data/xaap_aa.data_1ooK_aa and the size of the vectors is 29
+got the results in vector format and the size is 5
+the TMP vector before merging
+0:  9.49301
+0:  9.55541
+0:  9.56897
+0:  9.68008
+0:  9.72943
+the return results vector
+0:  9.09235
+0:  9.15927
+0:  9.19304
+0:  9.26937
+0:  9.2813
