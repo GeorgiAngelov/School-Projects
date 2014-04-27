@@ -1,7 +1,7 @@
 #!/bin/sh
 
 #PBS -N MPI_HW5_OUTPUT
-#PBS -l nodes=2,walltime=00:40:00
+#PBS -l nodes=6,walltime=00:40:00
 #PBS -M gaatyd@mizzou.edu
 #PBS -m abe
 
