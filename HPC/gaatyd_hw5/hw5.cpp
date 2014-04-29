@@ -279,6 +279,11 @@ int main (int argc, char *argv[]){
 		char directory_path[] = {"/cluster/content/hpc/dev_data"};
 		message.N = N_RESULTS;
 		message.seed = 26123;
+		srand(message.seed);
+		std::vector<std::vector<float>> generated_vectors(30);
+		for(int ii=0; ii< NUMBER_OF_TEST_VECTORS; ii++){
+			generated_vectors.at(ii) = generateRandomVector(VECTOR_SIZE);
+		}
 	
 		//////////////////////////////////
 		////////GET THE FILE NAMES////////
@@ -296,7 +301,7 @@ int main (int argc, char *argv[]){
 			++f)
 		{
 			path_list_type file_list(f->second);
-			std::cout << "Showing: " << f->first << " type files (" << file_list.size() << ")" << std::endl;
+			//std::cout << "Showing: " << f->first << " type files (" << file_list.size() << ")" << std::endl;
 			for (path_list_type::const_iterator i = file_list.begin();
 				i!=file_list.end(); ++i)
 			{
@@ -320,6 +325,7 @@ int main (int argc, char *argv[]){
 		///////SEND THE MESSAGES/////
 		//////////////////////////////
 		for(int test=0; test<NUMBER_OF_TEST_VECTORS; test++){
+			final_results.clear();
 			counter = 1;
 			//send messages to the workers
 			while(counter<world_size){
@@ -350,7 +356,7 @@ int main (int argc, char *argv[]){
 				std::sort(final_results.begin(), final_results.end());
 				final_results.resize(N_RESULTS);
 			}
-			
+			std::cout << "Test vector is " << scottgs::vectorToCSV(generated_vectors[test]) << std::endl;
 			for(int i=0; i<N_RESULTS; i++){
 				std::cout << "Final results x:" << final_results.at(i).x << " dist:" << final_results.at(i).dist << std::endl;
 			}
@@ -358,12 +364,12 @@ int main (int argc, char *argv[]){
 	}
 	//IF WORKER
 	else if (rank > 0) {
-		std::vector<std::vector<float>> generated_vectors(30);
+		
 		//WORLD SIZE MUST EXCLUDE THE MASTER NODE !!!
 		world_size -= 1;
 		//decrease it by 1 so we can start from 0 for computational purposes
 		int job_rank = rank-1;
-		
+		std::vector<std::vector<float>> generated_vectors(30);
 		///////////////////////////////////////////////////////////
 		/////START THE BLOCK OF CALCULATING THE SUBVECTOR MATCH////
 		///////////////////////////////////////////////////////////
@@ -375,7 +381,8 @@ int main (int argc, char *argv[]){
 			//the worker will wait until it receives a message
 			int result = MPI_Recv(&message, 1, MessageType, 0, tag, MPI_COMM_WORLD,
 					  MPI_STATUS_IGNORE);
-			std::cout << job_rank << " received message ! " << std::endl;
+			//std::cout << job_rank << " received message ! " << std::endl;
+			//std::cout << "test vector is " << scottgs::vectorToCSV(generated_vectors[test]) << std::endl;
 			//make sure the message was RECEIVED correctly
 			if (result == MPI_SUCCESS){
 				int i=0,j=0;
