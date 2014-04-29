@@ -306,23 +306,8 @@ int main (int argc, char *argv[]){
 				counter++;
 			}
 		}
-		
-		//////////////////////////////
-		///////SEND THE MESSAGES/////
-		//////////////////////////////
-		counter=1;
-		
-		//send messages to the workers
-		while(counter<world_size){
-			//send 1 message of type MessageType using my own structure(first parameter)
-			MPI_Ssend(&message, 1, MessageType, counter, tag, MPI_COMM_WORLD);
-			counter++;
-		}
-		
+					
 		message_to_master buffer[N_RESULTS];
-		
-		//calculate how many messages will the master get
-		int total_recv = NUMBER_OF_TEST_VECTORS*(world_size-1);
 		
 		std::vector<ResultType> final_results;
 		final_results.reserve(N_RESULTS);
@@ -331,98 +316,104 @@ int main (int argc, char *argv[]){
 		ResultType one;
 		double time = 0;
 		
-		//read the results from the results!
-		for(int w=0; w<total_recv; w++){
-			tmp.clear();
-			//the worker will wait until it receives a message
-			int result = MPI_Recv(&buffer, N_RESULTS, MessageToMasterType, MPI_ANY_SOURCE, tag, MPI_COMM_WORLD,
-				  MPI_STATUS_IGNORE);
-
-			time += buffer[0].time;
-			
-			for(int i=0; i<N_RESULTS; i++){
-				one.x = buffer[i].x;
-				one.y = buffer[i].y;
-				one.offset = buffer[i].offset;
-				one.dist = buffer[i].dist;
-				tmp.push_back(one);
+		//////////////////////////////
+		///////SEND THE MESSAGES/////
+		//////////////////////////////
+		for(int test=0; test<NUMBER_OF_TEST_VECTORS; test++){
+			counter = 1;
+			//send messages to the workers
+			while(counter<world_size){
+				//send 1 message of type MessageType using my own structure(first parameter)
+				MPI_Ssend(&message, 1, MessageType, counter, tag, MPI_COMM_WORLD);
+				counter++;
 			}
 			
-			final_results.insert( final_results.end(), tmp.begin(), tmp.end() );
-			//sort and resize the results
-			std::sort(final_results.begin(), final_results.end());
-			final_results.resize(N_RESULTS);
-		}
-		
-		for(int i=0; i<N_RESULTS; i++){
-			std::cout << "Final results x:" << final_results.at(i).x << " dist:" << final_results.at(i).dist << std::endl;
+			//read the results from the results!
+			for(int w=0; w<world_size-1; w++){
+				tmp.clear();
+				//the worker will wait until it receives a message
+				int result = MPI_Recv(&buffer, N_RESULTS, MessageToMasterType, MPI_ANY_SOURCE, tag, MPI_COMM_WORLD,
+					  MPI_STATUS_IGNORE);
+
+				time += buffer[0].time;
+				
+				for(int i=0; i<N_RESULTS; i++){
+					one.x = buffer[i].x;
+					one.y = buffer[i].y;
+					one.offset = buffer[i].offset;
+					one.dist = buffer[i].dist;
+					tmp.push_back(one);
+				}
+				
+				final_results.insert( final_results.end(), tmp.begin(), tmp.end() );
+				//sort and resize the results
+				std::sort(final_results.begin(), final_results.end());
+				final_results.resize(N_RESULTS);
+			}
+			
+			for(int i=0; i<N_RESULTS; i++){
+				std::cout << "Final results x:" << final_results.at(i).x << " dist:" << final_results.at(i).dist << std::endl;
+			}
 		}
 	}
 	//IF WORKER
 	else if (rank > 0) {
+		std::vector<std::vector<float>> generated_vectors(30);
+		//WORLD SIZE MUST EXCLUDE THE MASTER NODE !!!
+		world_size -= 1;
+		//decrease it by 1 so we can start from 0 for computational purposes
+		int job_rank = rank-1;
 		
-		//the worker will wait until it receives a message
-		int result = MPI_Recv(&message, 1, MessageType, 0, tag, MPI_COMM_WORLD,
-				  MPI_STATUS_IGNORE);
-				  
-		//make sure the message was RECEIVED correctly
-		if (result == MPI_SUCCESS){
-			int i=0,j=0;
-			message_to_master buffer[message.N];
-			
-			segment node_segment;
-			//WORLD SIZE MUST EXCLUDE THE MASTER NODE !!!
-			world_size -= 1;
-			//decrease it by 1 so we can start from 0 for computational purposes
-			int job_rank = rank-1;
-			
-			//calculate the number of files
-			int size = TOTAL_FILES/world_size;
-			//calculate the start and end files from the files array
-			node_segment.start = size*job_rank;
-			node_segment.end = size*job_rank + size;
-			int left_over = 0;
-			
-			//if it is the last node, there is left over files
-			if(job_rank==world_size-1){
-				left_over = TOTAL_FILES%world_size;
-			}
-			node_segment.end += left_over;
+		///////////////////////////////////////////////////////////
+		/////START THE BLOCK OF CALCULATING THE SUBVECTOR MATCH////
+		///////////////////////////////////////////////////////////
+		for(int ii=0; ii< NUMBER_OF_TEST_VECTORS; ii++){
+			generated_vectors.at(ii) = generateRandomVector(VECTOR_SIZE);
+		}
+		
+		for(int test=0; test<NUMBER_OF_TEST_VECTORS; test++){
+			//the worker will wait until it receives a message
+			int result = MPI_Recv(&message, 1, MessageType, 0, tag, MPI_COMM_WORLD,
+					  MPI_STATUS_IGNORE);
+			std::cout << job_rank << " received message ! " << std::endl;
+			//make sure the message was RECEIVED correctly
+			if (result == MPI_SUCCESS){
+				int i=0,j=0;
+				message_to_master buffer[message.N];
+				
+				segment node_segment;
+				
+				//calculate the number of files
+				int size = TOTAL_FILES/world_size;
+				//calculate the start and end files from the files array
+				node_segment.start = size*job_rank;
+				node_segment.end = size*job_rank + size;
+				int left_over = 0;
+				
+				//if it is the last node, there is left over files
+				if(job_rank==world_size-1){
+					left_over = TOTAL_FILES%world_size;
+				}
+				node_segment.end += left_over;
 
-			//seed the random generator with the seed value passed to this node
-			//this is done so each node can do it's own rand vector
-			srand(message.seed);
-
-			std::vector<std::vector<float>> generated_vectors(30);
+				//seed the random generator with the seed value passed to this node
+				//this is done so each node can do it's own rand vector
+				srand(message.seed);
 			
-			///////////////////////////////////////////////////////////
-			/////START THE BLOCK OF CALCULATING THE SUBVECTOR MATCH////
-			///////////////////////////////////////////////////////////
-			for(int ii=0; ii< NUMBER_OF_TEST_VECTORS; ii++){
-				generated_vectors.at(ii) = generateRandomVector(VECTOR_SIZE);
-			}
+				std::chrono::time_point<std::chrono::system_clock> start, end;
+				double time = 0;
+				//create the return results vectors and tmp vectors
+				//tmp receives the results from the function and return_results merges them
+				std::vector<ResultType> return_results;
+				return_results.reserve(message.N);
+				std::vector<ResultType> tmp;
 			
-			//let the first process print the results.
-			//std::cout << "\n-----------------" << std::endl;
-			//std::cout << "Search: "<< VECTOR_SIZE << "-D" << std::endl;
-			//std::cout << "-----------------" << std::endl;;
-			
-			std::chrono::time_point<std::chrono::system_clock> start, end;
-			double time = 0;
-			//create the return results vectors and tmp vectors
-			//tmp receives the results from the function and return_results merges them
-			std::vector<ResultType> return_results;
-			return_results.reserve(message.N);
-			std::vector<ResultType> tmp;
-			
-			//loop through each test vector
-			for(int j=0; j<NUMBER_OF_TEST_VECTORS; j++){
 				//loop through each file that node is assigned to 
 				for(i=node_segment.start; i<node_segment.end; i++){
 					//for each random vector, perform the subvector match
 					start = std::chrono::system_clock::now();
 					//get the top N results
-					tmp = sendWorkToWorker(job_rank, message, world_size, message.file_names[i], generated_vectors.at(j));
+					tmp = sendWorkToWorker(job_rank, message, world_size, message.file_names[i], generated_vectors.at(test));
 					end = std::chrono::system_clock::now();
 					std::chrono::duration<double, std::milli> elapsed_seconds = end-start;
 					return_results.insert( return_results.end(), tmp.begin(), tmp.end() );
@@ -445,8 +436,7 @@ int main (int argc, char *argv[]){
 				MPI_Ssend(&buffer, message.N, MessageToMasterType, 0, tag, MPI_COMM_WORLD);
 			}
 		}
-	}
-	
+	}//end outermost for loop over test messages
 	//shutdown MPI
 	MPI_Finalize();
 	return 0;
