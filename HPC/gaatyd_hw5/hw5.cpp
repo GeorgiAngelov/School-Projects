@@ -2,7 +2,7 @@
 *	Name: Georgi Angelov
 *	ID: 14120841
 *	HW#: Homework 5
-*	Date: 4/19/2014
+*	Date: 4/29/2014
 */
 #include <iostream>
 #include <iostream>
@@ -325,7 +325,7 @@ int main (int argc, char *argv[]){
 		ResultType one;
 		double time = 0;
 		std::chrono::time_point<std::chrono::system_clock> start_wall, end_wall;
-		std::chrono::duration<double, std::milli> elapsed_seconds;
+		std::chrono::duration<double> elapsed_seconds;
 		
 		//start the wall clock
 		start_wall = std::chrono::system_clock::now();
@@ -370,7 +370,7 @@ int main (int argc, char *argv[]){
 			std::cout << std::setw(13) << " x" << "|" << std::setw(10) << "y" << "|" << std::setw(8) << "offset" << "|" << std::setw(12) << "distance" << std::endl;
 			std::cout << "-------------+----------+--------+------------" << std::endl;
 			for(int i=0; i<N_RESULTS; i++){
-				std::cout << i+1 << ".   " << final_results.at(i).x << ":" << final_results.at(i).y << ":" << final_results.at(i).offset << ":" << final_results.at(i).dist << std::endl;
+				std::cout << i+1 << ".   " << std::setw(8) << final_results.at(i).x << ":" << std::setw(8) << final_results.at(i).y << ":" << std::setw(8) << final_results.at(i).offset << ":"<< std::setw(8) << final_results.at(i).dist << std::endl;
 			}
 			
 			//clear stuff
@@ -395,6 +395,7 @@ int main (int argc, char *argv[]){
 		//decrease it by 1 so we can start from 0 for computational purposes
 		int job_rank = rank-1;
 		std::vector<std::vector<float>> generated_vectors(30);
+		std::chrono::duration<double> elapsed_seconds;
 		///////////////////////////////////////////////////////////
 		/////START THE BLOCK OF CALCULATING THE SUBVECTOR MATCH////
 		///////////////////////////////////////////////////////////
@@ -453,7 +454,7 @@ int main (int argc, char *argv[]){
 					
 					//end the timing
 					end = std::chrono::system_clock::now();
-					std::chrono::duration<double, std::milli> elapsed_seconds = end-start;
+					elapsed_seconds = end-start;
 					time += elapsed_seconds.count();
 				}
 				

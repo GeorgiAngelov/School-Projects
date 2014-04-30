@@ -7,3 +7,5 @@ To change the top N results: please edit the Makefile and speciifcaly the "DN_RE
 To view the results from the execution, execute the following command: cat results.log
 
 To change the number of nodes, access the "hw5_test.sh" file and change the "nodes=" value to the desired number of nodes.
+
+Currently the hw5_test.sh script is cofigured to look for the executable at /cluster/students/d/gaatyd/Homeworks/HPC/gaatyd_hw5/ . This will need to be changed to whatever directory you are trying to run it from.

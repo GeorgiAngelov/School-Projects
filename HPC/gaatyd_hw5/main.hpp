@@ -2,7 +2,7 @@
 #define COL 60
 #define TOTAL_FILES 6
 #define VECTOR_SIZE 29
-#define NUMBER_OF_TEST_VECTORS 6
+#define NUMBER_OF_TEST_VECTORS 1
 
 typedef struct _message_to_worker{
 	int N;
