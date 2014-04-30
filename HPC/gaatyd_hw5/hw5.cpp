@@ -278,9 +278,13 @@ int main (int argc, char *argv[]){
 	if (rank == 0) {
 		char directory_path[] = {"/cluster/content/hpc/dev_data"};
 		message.N = N_RESULTS;
-		message.seed = 26123;
+		message.seed = 123231;
 		srand(message.seed);
 		std::vector<std::vector<float>> generated_vectors(30);
+		std::chrono::time_point<std::chrono::system_clock> start, end;
+		double wall_clock_time = 0;
+		double avg_search_time = 0;
+		
 		for(int ii=0; ii< NUMBER_OF_TEST_VECTORS; ii++){
 			generated_vectors.at(ii) = generateRandomVector(VECTOR_SIZE);
 		}
@@ -320,12 +324,16 @@ int main (int argc, char *argv[]){
 		tmp.reserve(N_RESULTS);
 		ResultType one;
 		double time = 0;
+		std::chrono::time_point<std::chrono::system_clock> start_wall, end_wall;
+		std::chrono::duration<double, std::milli> elapsed_seconds;
+		
+		//start the wall clock
+		start_wall = std::chrono::system_clock::now();
 		
 		//////////////////////////////
 		///////SEND THE MESSAGES/////
 		//////////////////////////////
 		for(int test=0; test<NUMBER_OF_TEST_VECTORS; test++){
-			final_results.clear();
 			counter = 1;
 			//send messages to the workers
 			while(counter<world_size){
@@ -341,7 +349,7 @@ int main (int argc, char *argv[]){
 				int result = MPI_Recv(&buffer, N_RESULTS, MessageToMasterType, MPI_ANY_SOURCE, tag, MPI_COMM_WORLD,
 					  MPI_STATUS_IGNORE);
 
-				time += buffer[0].time;
+				avg_search_time += buffer[0].time;
 				
 				for(int i=0; i<N_RESULTS; i++){
 					one.x = buffer[i].x;
@@ -356,11 +364,28 @@ int main (int argc, char *argv[]){
 				std::sort(final_results.begin(), final_results.end());
 				final_results.resize(N_RESULTS);
 			}
+
+			//print results
 			std::cout << "Test vector is " << scottgs::vectorToCSV(generated_vectors[test]) << std::endl;
+			std::cout << std::setw(13) << " x" << "|" << std::setw(10) << "y" << "|" << std::setw(8) << "offset" << "|" << std::setw(12) << "distance" << std::endl;
+			std::cout << "-------------+----------+--------+------------" << std::endl;
 			for(int i=0; i<N_RESULTS; i++){
-				std::cout << "Final results x:" << final_results.at(i).x << " dist:" << final_results.at(i).dist << std::endl;
+				std::cout << i+1 << ".   " << final_results.at(i).x << ":" << final_results.at(i).y << ":" << final_results.at(i).offset << ":" << final_results.at(i).dist << std::endl;
 			}
-		}
+			
+			//clear stuff
+			final_results.clear();
+		}//end test vector loop
+		
+		//calculate wall time
+		end_wall = std::chrono::system_clock::now();
+		elapsed_seconds = end_wall-start_wall;
+		wall_clock_time = elapsed_seconds.count()/NUMBER_OF_TEST_VECTORS;
+		
+		avg_search_time = avg_search_time/NUMBER_OF_TEST_VECTORS;
+		std::cout << "Average Search Time: " << avg_search_time << std::endl;
+		std::cout << "Wall Clock Time: " << wall_clock_time << std::endl;
+		std::cout << "Parallelization Speed Up: " << avg_search_time/wall_clock_time << std::endl;
 	}
 	//IF WORKER
 	else if (rank > 0) {
@@ -381,8 +406,6 @@ int main (int argc, char *argv[]){
 			//the worker will wait until it receives a message
 			int result = MPI_Recv(&message, 1, MessageType, 0, tag, MPI_COMM_WORLD,
 					  MPI_STATUS_IGNORE);
-			//std::cout << job_rank << " received message ! " << std::endl;
-			//std::cout << "test vector is " << scottgs::vectorToCSV(generated_vectors[test]) << std::endl;
 			//make sure the message was RECEIVED correctly
 			if (result == MPI_SUCCESS){
 				int i=0,j=0;
@@ -421,14 +444,16 @@ int main (int argc, char *argv[]){
 					start = std::chrono::system_clock::now();
 					//get the top N results
 					tmp = sendWorkToWorker(job_rank, message, world_size, message.file_names[i], generated_vectors.at(test));
-					end = std::chrono::system_clock::now();
-					std::chrono::duration<double, std::milli> elapsed_seconds = end-start;
+					
 					return_results.insert( return_results.end(), tmp.begin(), tmp.end() );
 		
 					//sort and resize the results
 					std::sort(return_results.begin(), return_results.end());
 					return_results.resize(message.N);
 					
+					//end the timing
+					end = std::chrono::system_clock::now();
+					std::chrono::duration<double, std::milli> elapsed_seconds = end-start;
 					time += elapsed_seconds.count();
 				}
 				
@@ -438,7 +463,7 @@ int main (int argc, char *argv[]){
 					buffer[k].y = return_results.at(k).y;
 					buffer[k].offset = return_results.at(k).offset;
 					buffer[k].dist = return_results.at(k).dist;
-					buffer[k].time = time/(node_segment.end - node_segment.start);
+					buffer[k].time = time;
 				} 
 				MPI_Ssend(&buffer, message.N, MessageToMasterType, 0, tag, MPI_COMM_WORLD);
 			}
