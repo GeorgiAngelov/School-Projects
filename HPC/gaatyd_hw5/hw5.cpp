@@ -283,6 +283,7 @@ int main (int argc, char *argv[]){
 		std::vector<std::vector<float>> generated_vectors(30);
 		std::chrono::time_point<std::chrono::system_clock> start, end;
 		double wall_clock_time = 0;
+		double inner_wall_clock_time = 0;
 		double avg_search_time = 0;
 		
 		for(int ii=0; ii< NUMBER_OF_TEST_VECTORS; ii++){
@@ -324,7 +325,8 @@ int main (int argc, char *argv[]){
 		tmp.reserve(N_RESULTS);
 		ResultType one;
 		double time = 0;
-		std::chrono::time_point<std::chrono::system_clock> start_wall, end_wall;
+		double inner_serial_time = 0;
+		std::chrono::time_point<std::chrono::system_clock> start_wall, end_wall, inner_start_wall, inner_end_wall;
 		std::chrono::duration<double> elapsed_seconds;
 		
 		//start the wall clock
@@ -334,6 +336,8 @@ int main (int argc, char *argv[]){
 		///////SEND THE MESSAGES/////
 		//////////////////////////////
 		for(int test=0; test<NUMBER_OF_TEST_VECTORS; test++){
+			//start the inner wall clock
+			inner_start_wall = std::chrono::system_clock::now();
 			counter = 1;
 			//send messages to the workers
 			while(counter<world_size){
@@ -350,6 +354,7 @@ int main (int argc, char *argv[]){
 					  MPI_STATUS_IGNORE);
 
 				avg_search_time += buffer[0].time;
+				inner_serial_time += buffer[0].time;
 				
 				for(int i=0; i<N_RESULTS; i++){
 					one.x = buffer[i].x;
@@ -364,7 +369,12 @@ int main (int argc, char *argv[]){
 				std::sort(final_results.begin(), final_results.end());
 				final_results.resize(N_RESULTS);
 			}
-
+			//stop the end clock
+			inner_end_wall = std::chrono::system_clock::now();
+			elapsed_seconds = inner_end_wall - inner_start_wall;
+			inner_wall_clock_time = elapsed_seconds.count();
+			std::cout << "Serial Search Time For Search Vector: " << inner_serial_time << std::endl;
+			std::cout << "Wall Clock Time For Search Vector: " << inner_wall_clock_time << std::endl;
 			//print results
 			std::cout << "Test vector is " << scottgs::vectorToCSV(generated_vectors[test]) << std::endl;
 			std::cout << std::setw(13) << " x" << "|" << std::setw(10) << "y" << "|" << std::setw(8) << "offset" << "|" << std::setw(12) << "distance" << std::endl;
@@ -372,9 +382,9 @@ int main (int argc, char *argv[]){
 			for(int i=0; i<N_RESULTS; i++){
 				std::cout << i+1 << ".   " << std::setw(8) << final_results.at(i).x << ":" << std::setw(8) << final_results.at(i).y << ":" << std::setw(8) << final_results.at(i).offset << ":"<< std::setw(8) << final_results.at(i).dist << std::endl;
 			}
-			
 			//clear stuff
 			final_results.clear();
+			inner_serial_time = 0;
 		}//end test vector loop
 		
 		//calculate wall time
@@ -384,7 +394,7 @@ int main (int argc, char *argv[]){
 		
 		avg_search_time = avg_search_time/NUMBER_OF_TEST_VECTORS;
 		std::cout << "Average Search Time: " << avg_search_time << std::endl;
-		std::cout << "Wall Clock Time: " << wall_clock_time << std::endl;
+		std::cout << "Total Wall Clock Time: " << wall_clock_time << std::endl;
 		std::cout << "Parallelization Speed Up: " << avg_search_time/wall_clock_time << std::endl;
 	}
 	//IF WORKER
